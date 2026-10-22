@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 rust-version = "1.88"
 description = "Native MCP server for the gralloch reverse-engineering pipeline: PE triage and safe case creation."
-license = "MIT OR Apache-2.0"
+license = "MPL-2.0"
 
 [[bin]]
 name = "gralloch-mcp"

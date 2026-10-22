@@ -13,7 +13,7 @@
       "source": "./gralloch-plugin",
       "description": "Isolation-first, semi-automatic reverse-engineering pipeline for Windows PE: native Rust MCP triage, orchestrating Ghidra/capa/Frida externally.",
       "version": "0.1.0",
-      "license": "MIT OR Apache-2.0",
+      "license": "MPL-2.0",
       "keywords": ["reverse-engineering", "malware-analysis", "pe", "triage", "mcp"]
     }
   ]
