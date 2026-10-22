@@ -19,3 +19,6 @@ testdata/corpus/
 
 # Case working data must live outside the repo
 cases/
+
+# Machine-specific Codex MCP paths
+.codex/config.toml

@@ -1,7 +1,8 @@
 # gralloch
 
 Isolation-first, semi-automatic **reverse-engineering pipeline for Windows PE**,
-delivered as a Claude Code plugin. Claude orchestrates established tools
+delivered as a Claude Code plugin, with [Codex support](docs/CODEX.md).
+The coding agent orchestrates established tools
 (Ghidra, capa, Frida, …); a native Rust MCP server does the fast deterministic
 work (triage, safe case creation). The pipeline is a thin wrapper over existing
 tools, not a new analysis engine.
@@ -10,10 +11,12 @@ tools, not a new analysis engine.
 - **Marketplace:** `.claude-plugin/marketplace.json` (repo root is an installable marketplace)
 - **Test data:** [`testdata/`](testdata/) — safe corpus tooling + a `pefile` cross-check
 - **Commands:** [`docs/README.md`](docs/README.md) — every slash command, incl. one-shot `/gralloch <sample>`
+- **Codex:** [`docs/CODEX.md`](docs/CODEX.md) — Windows setup, MCP connection, and `$gralloch` skill
 
 ## Prerequisites
 
-**Host:** Windows + [Claude Code](https://code.claude.com). Analysis stays on the
+**Host:** Windows + [Claude Code](https://code.claude.com) or Codex (see
+[Codex setup](docs/CODEX.md)). The steps below describe Claude Code. Analysis stays on the
 host; executing a sample is a VM task (see Safety).
 
 **To build the MCP server (required):**
@@ -118,3 +121,7 @@ Samples are stored read-only without an executable extension; a fail-closed
 `PreToolUse` hook blocks host-side execution, read-only removal, and antivirus
 tampering; dynamic analysis runs only inside a VM; sample-derived text is treated
 as untrusted data. See the `gralloch-isolation` skill.
+
+The execution-blocking hook above is specific to Claude Code. Codex uses the
+same read-only case storage and isolation instructions, but does not load that
+hook; see [the Codex isolation boundary](docs/CODEX.md#isolation-boundary).
