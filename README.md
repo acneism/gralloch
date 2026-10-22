@@ -95,14 +95,75 @@ All commands are documented in [`docs/README.md`](docs/README.md).
 
 ## Codex
 
-Codex uses the same Rust MCP server and analysis scripts as Claude Code. This
-integration adds a repository skill and project-local MCP configuration. It does
-not require installing the Claude plugin or changing global Codex settings.
-This is a checkout-based integration, not a Codex marketplace package: setup
-requires building the server and generating local configuration once. After
-setup, invoke `$gralloch` from a chat working in this repository.
+Install the Gralloch plugin once, then invoke its `$gralloch:gralloch` skill from a local
+Codex chat in any working directory. The installed package includes the MCP
+server, scripts, schemas, and stage guides; it does not depend on the checkout
+at runtime. Windows, Codex CLI with `codex plugin add`, and the Rust/linker
+prerequisites above are required for installation.
 
-### Setup (Windows)
+### Install once (Windows)
+
+```powershell
+git clone --branch codex-support https://github.com/acneism/gralloch.git
+cd gralloch
+.\scripts\install-codex.ps1
+```
+
+The installer builds the native server, prepares a runtime package, registers
+`gralloch-codex` as a local marketplace, and installs `gralloch@gralloch-codex`
+using Codex's plugin manager. It leaves unrelated Codex settings intact.
+Use `-Yara` to build and install the optional YARA engine, or `-SkipBuild` to
+package an executable you have already built. Restart Codex or start a new local
+chat after installation. Check installation with:
+
+```powershell
+codex plugin list --marketplace gralloch-codex
+```
+
+After updating the checkout, rerun the installer (with `-Yara` if wanted) to
+rebuild and refresh the installed copy. `-PackageOnly` stages the package without
+registering or installing it. The generated `.codex-package/` directory is
+ignored by Git and is the local marketplace's package source. Do not register
+the Git repository URL as a ready-to-run marketplace: server binaries are built
+locally and are not committed.
+
+### Run the command in Codex
+
+In a **Codex chat**, send:
+
+```text
+$gralloch:gralloch "C:\samples\app.exe" --profile understand --cases-root "C:\analysis\cases"
+```
+
+This starts case creation, triage, applicable static unpacking, optional capa
+and YARA, string deobfuscation, and the final report. Missing optional tools are
+reported and skipped. Without `--cases-root`, the skill asks for the location
+unless `GRALLOCH_CASES_ROOT` supplies one. The profile defaults to `understand`.
+Sample execution is a separate VM-only task.
+
+Single-stage examples:
+
+```text
+$gralloch:gralloch "C:\samples\app.exe" --triage --cases-root "C:\analysis\cases"
+$gralloch:gralloch --static "C:\analysis\cases\<case>"
+$gralloch:gralloch --verify "C:\analysis\cases\<case>"
+$gralloch:gralloch --report "C:\analysis\cases\<case>"
+```
+
+`$gralloch:gralloch` is the installed plugin skill invocation in Codex
+(`plugin:skill` namespace), not a PowerShell command. Claude's
+`/gralloch` slash command belongs to Claude Code. You can also describe the
+requested Gralloch stage in natural language. Cases must be outside the installed
+package or source repository. Configure optional tools with `CAPA_EXE`, `UPX_EXE`,
+`GHIDRA_INSTALL_DIR`, and `JAVA_HOME` in the environment inherited by Codex, or
+supply explicit script parameters.
+
+### Manual project setup (alternative)
+
+For development in the checkout, you can use the repository skill and a
+project-local MCP server instead of installing the plugin. Use one connection
+method to avoid loading duplicate Gralloch servers. This method requires the
+checkout at runtime and only discovers the skill inside that repository.
 
 Install Codex and the Rust/linker prerequisites listed above. From
 the repository root:
@@ -147,7 +208,7 @@ The skill is loaded from `.agents/skills/gralloch/SKILL.md` for chats working in
 this checkout. It relies on the shared files in this repository; copying only
 the skill folder elsewhere is not a standalone installation.
 
-### Usage
+### Per-project usage
 
 Ask Codex, for example:
 
@@ -178,6 +239,8 @@ approval modes for malware analysis.
 
 ### Troubleshooting
 
+- Installed command missing: check `codex plugin list --marketplace gralloch-codex`,
+  ensure the plugin is enabled, and start a new local chat.
 - Missing executable: build the server before running setup.
 - Missing connection: check project trust, absolute paths, and `/mcp`; restart
   the chat after configuration changes. No `${CLAUDE_PLUGIN_ROOT}` or Claude

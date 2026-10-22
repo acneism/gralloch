@@ -5,9 +5,27 @@ description: Analyze Windows PE samples with the Gralloch MCP server and reposit
 
 # Gralloch for Codex
 
-This skill runs from a checkout of this repository on Windows. Resolve the repo
-root from this file (three directories up); the plugin root is
-`<repo>/gralloch-plugin`. Use absolute paths for scripts and case directories.
+This skill runs on Windows from either a checkout or an installed Codex package.
+Resolve the package root from this file (three directories up); the analysis
+plugin root is `<package>/gralloch-plugin`. Use absolute paths for scripts and
+case directories. The installed package is independent of the checkout and of
+the user's current working directory.
+
+## Command
+
+The installed plugin command is `$gralloch:gralloch`; the repository-only skill
+uses `$gralloch`. For example, the user sends:
+
+```text
+$gralloch:gralloch "C:\path\sample.exe" --profile understand --cases-root "C:\analysis\cases"
+```
+
+Treat the supplied path as
+the sample and run the full pipeline below. Recognize `--profile` (default
+`understand`), `--cases-root`, `--triage` (case creation and triage only),
+`--static <case-dir>` (Ghidra only), `--verify <case-dir>`, and
+`--report <case-dir>` (rebuild report only). Do not run other stages when a
+single-stage flag is requested. If no sample or case path is given, ask for it.
 
 ## Isolation
 
@@ -71,5 +89,6 @@ Read only the guide relevant to the requested stage:
 - [Reports](../../../gralloch-plugin/skills/gralloch-report/SKILL.md):
   `report(case_dir)` rebuilds a report without rerunning analysis.
 
-The MCP interface in `gralloch-plugin/gralloch-mcp/src/server.rs` is the source
-of truth for tool parameters. The stage scripts are shared with Claude Code.
+Use the connected MCP tool schemas for exact parameters. In a source checkout,
+the interface is implemented in `gralloch-plugin/gralloch-mcp/src/server.rs`.
+The stage scripts are shared with Claude Code.

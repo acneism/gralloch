@@ -1,0 +1,16 @@
+{
+  "name": "gralloch",
+  "version": "0.2.0",
+  "description": "Analyze Windows PE files with the $gralloch:gralloch skill and a bundled native MCP server.",
+  "author": { "name": "gralloch maintainers" },
+  "repository": "https://github.com/acneism/gralloch",
+  "license": "MPL-2.0",
+  "skills": "./.agents/skills/",
+  "mcpServers": "./.mcp.codex.json",
+  "requires_local_executor": true,
+  "interface": {
+    "displayName": "Gralloch",
+    "shortDescription": "Analyze Windows PE files with $gralloch:gralloch",
+    "defaultPrompt": ["$gralloch:gralloch Analyze a Windows PE file with profile understand."]
+  }
+}

@@ -22,3 +22,6 @@ cases/
 
 # Machine-specific Codex MCP paths
 .codex/config.toml
+
+# Generated self-contained Codex plugin (includes the local server binary)
+.codex-package/

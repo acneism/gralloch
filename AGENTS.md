@@ -4,6 +4,9 @@ Windows PE analysis tooling: `gralloch-plugin/gralloch-mcp` is the Rust stdio MC
 server; `gralloch-plugin/scripts` contains external-tool wrappers. Claude Code
 packaging lives in `.claude-plugin` and `gralloch-plugin/.claude-plugin`.
 Codex discovers the repository skill at `.agents/skills/gralloch/SKILL.md`.
+The native Codex package manifest is `.codex-plugin/plugin.json` and its local
+marketplace is `.agents/plugins/marketplace.json`. `scripts/install-codex.ps1`
+stages only runtime files under ignored `.codex-package/` before installation.
 
 For sample analysis, use the Gralloch skill and its isolation rules. Never execute
 samples on the host. The Claude guard hook does not protect Codex shell calls.
@@ -15,3 +18,4 @@ Build on Windows with `gralloch-plugin/gralloch-mcp/build-windows.ps1` (optional
 changes, and test the `yara` feature when changing its engine. Check changed
 PowerShell scripts for syntax and exercise their relevant behavior. Do not commit
 server binaries, case artifacts, or machine-specific `.codex/config.toml`.
+For packaging changes, run `python -m unittest discover -s tests -p test_codex_package.py`.

@@ -1,0 +1,12 @@
+{
+  "name": "gralloch-codex",
+  "interface": { "displayName": "Gralloch for Codex" },
+  "plugins": [
+    {
+      "name": "gralloch",
+      "source": { "source": "local", "path": "./.codex-package/gralloch" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Developer tools"
+    }
+  ]
+}
