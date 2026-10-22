@@ -9,6 +9,7 @@
 //! Isolation note: this server only ever READS the sample bytes. It contains no
 //! code path that launches a process from the sample (see tz-re-pipeline.md 4).
 
+mod capa;
 mod casedir;
 mod hashes;
 mod server;

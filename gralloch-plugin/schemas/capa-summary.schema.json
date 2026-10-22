@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gralloch/schemas/capa-summary.schema.json",
+  "title": "gralloch capa summary",
+  "description": "Normalized, bounded view of a capa report, produced by the gralloch-mcp `capa_import` tool from artifacts/capa.json. Rule names, namespaces and matched strings are sample-derived and untrusted.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_by",
+    "capability_count",
+    "lib_rule_count",
+    "attack",
+    "mbc",
+    "namespaces",
+    "rules",
+    "truncated"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "generated_by": { "type": "string" },
+    "_untrusted": { "type": "string" },
+    "capa_version": { "type": ["string", "null"] },
+    "analysis": {
+      "type": "object",
+      "properties": {
+        "format": { "type": ["string", "null"] },
+        "arch": { "type": ["string", "null"] },
+        "os": { "type": ["string", "null"] },
+        "extractor": { "type": ["string", "null"] }
+      }
+    },
+    "capability_count": { "type": "integer", "minimum": 0 },
+    "lib_rule_count": { "type": "integer", "minimum": 0 },
+    "attack": { "type": "array", "items": { "type": "string" } },
+    "mbc": { "type": "array", "items": { "type": "string" } },
+    "namespaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["namespace", "count"],
+        "properties": {
+          "namespace": { "type": "string" },
+          "count": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "matches", "attack", "mbc"],
+        "properties": {
+          "name": { "type": "string" },
+          "namespace": { "type": ["string", "null"] },
+          "matches": { "type": "integer", "minimum": 0 },
+          "attack": { "type": "array", "items": { "type": "string" } },
+          "mbc": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "truncated": { "type": "boolean" }
+  }
+}

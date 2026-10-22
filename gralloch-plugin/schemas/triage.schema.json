@@ -117,11 +117,14 @@
     },
     "capabilities": {
       "type": "object",
+      "description": "capa capability matches. Populated by the capa_import tool; empty until then. See artifacts/capa-summary.json for the full normalized view.",
       "properties": {
         "source": { "type": "string" },
         "available": { "type": "boolean" },
         "note": { "type": "string" },
-        "items": { "type": "array", "items": { "type": "string" } }
+        "count": { "type": "integer", "minimum": 0 },
+        "items": { "type": "array", "items": { "type": "string" } },
+        "summary_file": { "type": "string" }
       }
     },
     "yara": {

@@ -31,15 +31,18 @@ Then: `/case-new`, `/triage`, `/static`. See `gralloch-plugin/README.md`.
 
 | Stage | Component | State |
 |---|---|---|
-| 0 | case creation (`case_new`) | source done; needs `cargo build` |
-| 1 | triage (`triage`) | source done; cross-checked vs `pefile`; needs `cargo build` |
+| 0 | case creation (`case_new`) | built & verified end-to-end |
+| 1 | triage (`triage`) | built & verified; cross-checked vs `pefile` |
+| 1 | capa enrichment (`capa_import` + `/capa`) | built & verified vs capa 10.0.0 |
 | 3 | Ghidra headless export (`/static`) | scaffolded; needs a Ghidra install |
 | — | isolation hook, skills, commands, schemas, marketplace | done and validated |
 | 2,4,5,6,7 | unpack / deobf / dynamics / verify / output | per spec, later |
 
-All markdown/JSON/scripts are validated here (`claude plugin validate --strict`,
-JSON Schema, hook unit tests, script syntax). The Rust server is written but not
-yet compiled on this machine (no toolchain present).
+The Rust server compiles (`rustc 1.99.1`, `x86_64-pc-windows-gnu`) and is
+verified end-to-end: `cargo test`, an MCP stdio handshake, and `case_new` →
+`triage` → capa (`run-capa.ps1` + `capa_import`) over a real System32 PE. All
+markdown/JSON/scripts are validated too (`claude plugin validate --strict`,
+JSON Schema, hook unit tests, script syntax).
 
 ## Safety
 
