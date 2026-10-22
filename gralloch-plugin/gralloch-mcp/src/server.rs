@@ -52,6 +52,12 @@ pub struct VerifyParams {
 }
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+pub struct ReportParams {
+    #[schemars(description = "Path to the case directory. Aggregates whatever artifacts exist into the final report.")]
+    pub case_dir: String,
+}
+
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
 pub struct YaraScanParams {
     #[schemars(description = "Path to the case directory previously created by case_new.")]
     pub case_dir: String,
@@ -163,6 +169,21 @@ impl Gralloch {
             Ok(r) => Ok(CallToolResult::success(vec![ContentBlock::text(r.summary)])),
             Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
                 "verify failed: {e:#}"
+            ))])),
+        }
+    }
+
+    #[tool(
+        description = "Aggregate the case's artifacts (triage, capa, yara, unpack, deobfuscation, dynamics, verification) into the final artifacts/report.md and artifacts/report.json: sample metadata, capabilities/YARA leads, dynamic behavior, aggregated IOCs, and findings split into confirmed vs hypotheses. Sample-derived strings are sanitized before embedding. Reads JSON only; executes nothing."
+    )]
+    async fn report(
+        &self,
+        Parameters(p): Parameters<ReportParams>,
+    ) -> Result<CallToolResult, rmcp::ErrorData> {
+        match crate::report::report(&p.case_dir) {
+            Ok(r) => Ok(CallToolResult::success(vec![ContentBlock::text(r.summary)])),
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
+                "report failed: {e:#}"
             ))])),
         }
     }

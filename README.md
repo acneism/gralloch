@@ -40,8 +40,8 @@ Then: `/case-new`, `/triage`, `/static`. See `gralloch-plugin/README.md`.
 | 4 | static deobfuscation (`deobfuscate` + `/deobfuscate`) | built & verified (strings, XOR brute, base64) |
 | 5 | dynamics: VM trace + `dynamic_import` (`/dynamics`) | built & verified (host imports VM trace; never executes) |
 | 6 | verification (`verify` + `/verify`) | built & verified (confirmed⇒evidence; writeback via Ghidra MCP) |
+| 7 | output: final report (`report` + `/report`) | built & verified (report.md/json, IOCs, injection-sanitized) |
 | — | isolation hook, skills, commands, schemas, marketplace | done and validated |
-| 7 | output / final report | per spec, later |
 
 The Rust server compiles (`rustc 1.99.1`, `x86_64-pc-windows-gnu`) and is
 verified end-to-end: `cargo test`, an MCP stdio handshake, and `case_new` →

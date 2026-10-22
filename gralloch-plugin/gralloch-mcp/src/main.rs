@@ -14,6 +14,7 @@ mod casedir;
 mod deobf;
 mod dynamic;
 mod hashes;
+mod report;
 mod server;
 mod triage;
 mod verify;

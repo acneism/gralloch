@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gralloch/schemas/report.schema.json",
+  "title": "gralloch final report",
+  "description": "Output of the gralloch-mcp `report` tool (stage 7). Machine-readable companion to report.md. Sample-derived content is untrusted.",
+  "type": "object",
+  "required": ["schema_version", "generated_by", "sample", "iocs", "findings", "artifacts_used", "report_md"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "generated_by": { "type": "string" },
+    "_untrusted": { "type": "string" },
+    "sample": { "type": ["object", "null"] },
+    "triage": { "type": ["object", "null"] },
+    "capabilities": { "type": ["object", "null"] },
+    "yara": { "type": ["object", "null"] },
+    "unpack": { "type": ["object", "null"] },
+    "deobfuscation": { "type": ["object", "null"] },
+    "dynamics": { "type": ["object", "null"] },
+    "iocs": {
+      "type": "object",
+      "required": ["network", "files", "registry", "processes", "modules", "hashes"],
+      "properties": {
+        "network": { "type": "array", "items": { "type": "string" } },
+        "files": { "type": "array", "items": { "type": "string" } },
+        "registry": { "type": "array", "items": { "type": "string" } },
+        "processes": { "type": "array", "items": { "type": "string" } },
+        "modules": { "type": "array", "items": { "type": "string" } },
+        "hashes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "findings": {
+      "type": "object",
+      "required": ["confirmed", "hypotheses", "rejected"],
+      "properties": {
+        "confirmed": { "type": "array" },
+        "hypotheses": { "type": "array" },
+        "rejected": { "type": "array" }
+      }
+    },
+    "artifacts_used": { "type": "array", "items": { "type": "string" } },
+    "report_md": { "type": "string" }
+  }
+}
