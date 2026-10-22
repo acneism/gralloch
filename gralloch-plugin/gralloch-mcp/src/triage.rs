@@ -1,9 +1,3 @@
-//! Stage 1 triage: parse the stored PE and emit `artifacts/triage.json`.
-//!
-//! All text taken from the sample (section names, imported/exported names) is
-//! attacker-controlled. The report flags this via `_untrusted` so downstream
-//! consumers (Claude) treat it as data, not instructions (tz-re-pipeline.md 4.4).
-
 use std::fs;
 use std::path::PathBuf;
 
@@ -16,7 +10,6 @@ use crate::casedir;
 const SCHEMA_VERSION: &str = "0.1.0";
 const HIGH_ENTROPY: f64 = 7.2;
 
-// PE section characteristics flags.
 const SCN_CNT_CODE: u32 = 0x0000_0020;
 const SCN_MEM_EXECUTE: u32 = 0x2000_0000;
 const SCN_MEM_READ: u32 = 0x4000_0000;
@@ -137,8 +130,6 @@ pub struct TriageResult {
     pub summary: String,
 }
 
-/// Run triage on the case at `case_dir`, write `artifacts/triage.json`, and
-/// bump the case stage to 1.
 pub fn triage(case_dir: &str) -> Result<TriageResult> {
     let case_dir = PathBuf::from(case_dir);
     let mut case = casedir::read_case_json(&case_dir)?;
@@ -198,7 +189,6 @@ fn analyze(bytes: &[u8], stored_sample: &str, sha256: &str) -> Result<TriageRepo
         None => (0u16, pe.image_base as u64),
     };
 
-    // Sections + per-section entropy.
     let mut sections = Vec::new();
     let mut max_raw_end: u64 = 0;
     let mut entry_section: Option<String> = None;
@@ -245,7 +235,6 @@ fn analyze(bytes: &[u8], stored_sample: &str, sha256: &str) -> Result<TriageRepo
         });
     }
 
-    // Imports grouped by DLL.
     let mut by_dll: Vec<ImportDll> = Vec::new();
     for imp in &pe.imports {
         let dll = imp.dll.to_string();
@@ -268,7 +257,6 @@ fn analyze(bytes: &[u8], stored_sample: &str, sha256: &str) -> Result<TriageRepo
         .filter_map(|e| e.name.map(|n| n.to_string()))
         .collect();
 
-    // Overlay = bytes after the last raw section end.
     let file_len = bytes.len() as u64;
     let overlay = if file_len > max_raw_end && max_raw_end > 0 {
         OverlayInfo {
@@ -289,11 +277,8 @@ fn analyze(bytes: &[u8], stored_sample: &str, sha256: &str) -> Result<TriageRepo
         .iter()
         .any(|l| l.eq_ignore_ascii_case("mscoree.dll"));
 
-    // Heuristic packer detection.
     let packer = detect_packer(&sections, function_count, entry_in_writable, &overlay);
 
-    // Route recommendation. Only medium/high packer confidence routes to unpack;
-    // weak (low) indicators like an overlay alone proceed to static analysis.
     let route = if packer.detected && packer.confidence != "low" {
         RouteInfo {
             recommended: "unpack".into(),
@@ -410,10 +395,7 @@ fn detect_packer(
 
     let high_entropy = indicators.iter().any(|i| i.starts_with("high-entropy"));
     let detected = !indicators.is_empty();
-    // Strong packing signals justify a static-unpack attempt. An overlay or a
-    // low import count on their own are weak and common in benign binaries
-    // (e.g. installers, statically-linked exes), so they stay "low" and do NOT
-    // route to unpack — otherwise unpack -> re-triage -> unpack would loop.
+
     let strong = named || high_entropy || entry_in_writable;
     let confidence = if named && high_entropy {
         "high"
@@ -434,9 +416,7 @@ fn detect_packer(
 }
 
 fn yara_scan(_bytes: &[u8]) -> YaraInfo {
-    // Placeholder. The dedicated `yara_scan` MCP tool (cargo feature `yara`)
-    // compiles rules, scans, and fills this block + writes artifacts/yara.json,
-    // so triage itself stays light and feature-independent.
+
     YaraInfo {
         enabled: false,
         hits: vec![],

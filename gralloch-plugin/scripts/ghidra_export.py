@@ -1,24 +1,7 @@
-# Ghidra headless post-script: export functions, strings and xrefs to JSON.
-#
-# Runs INSIDE Ghidra's Jython (Python 2.7) via analyzeHeadless -postScript.
-# It performs STATIC analysis only; it never executes the sample.
-#
-# Invoked by scripts/run-ghidra-headless.ps1 as:
-#   analyzeHeadless <proj> <name> -import <sample> \
-#       -scriptPath <this dir> -postScript ghidra_export.py <out.json>
-#
-# The single script argument is the absolute output path.
-#
-# NOTE: this file is written to be syntactically valid under both Jython 2.7 and
-# CPython (so it passes `python -m py_compile`), but it only RUNS inside Ghidra,
-# where the globals (currentProgram, getScriptArgs) and `ghidra.*` modules exist.
-
 import json
 
-# Bounds so a huge binary can't produce an unusable export.
 MAX_STRINGS = 20000
 MAX_XREFS = 50000
-
 
 def _addr(a):
     try:
@@ -26,11 +9,10 @@ def _addr(a):
     except Exception:
         return str(a)
 
-
 def collect_functions(program):
     out = []
     fm = program.getFunctionManager()
-    for f in fm.getFunctions(True):  # True = forward order
+    for f in fm.getFunctions(True):
         try:
             sig = f.getSignature().getPrototypeString()
         except Exception:
@@ -46,7 +28,6 @@ def collect_functions(program):
         })
     return out
 
-
 def collect_strings(program):
     from ghidra.program.model.data import AbstractStringDataType
     out = []
@@ -58,9 +39,8 @@ def collect_strings(program):
         if isinstance(dt, AbstractStringDataType):
             val = d.getValue()
             if val is not None:
-                out.append({"addr": _addr(d.getAddress()), "value": unicode(val)})  # noqa: F821
+                out.append({"addr": _addr(d.getAddress()), "value": unicode(val)})
     return out
-
 
 def collect_xrefs(program):
     out = []
@@ -83,15 +63,14 @@ def collect_xrefs(program):
             })
     return out
 
-
 def main():
-    args = getScriptArgs()  # noqa: F821  (Ghidra global)
+    args = getScriptArgs()
     if not args:
         print("ghidra_export: missing output path argument")
         return
     out_path = args[0]
 
-    program = currentProgram  # noqa: F821  (Ghidra global)
+    program = currentProgram
     report = {
         "schema_version": "0.1.0",
         "generated_by": "gralloch ghidra_export 0.1.0",
@@ -115,6 +94,5 @@ def main():
         f.close()
     print("ghidra_export: wrote %s (%d functions, %d strings, %d xrefs)" % (
         out_path, len(report["functions"]), len(report["strings"]), len(report["xrefs"])))
-
 
 main()

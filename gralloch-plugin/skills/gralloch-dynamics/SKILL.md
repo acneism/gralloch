@@ -7,7 +7,7 @@ description: Stage 5 dynamics for the gralloch pipeline — run Frida/x64dbg tra
 
 Follow [gralloch-isolation](../gralloch-isolation/SKILL.md). This is the only
 stage that EXECUTES the sample, and it does so **only inside the analysis VM, and
-only on the user's explicit command** (spec §5, §4.1). The host never runs the
+only on the user's explicit command**. The host never runs the
 sample — the `PreToolUse` hook blocks it, by design.
 
 ## Preconditions (confirm with the user before any run)

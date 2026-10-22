@@ -6,7 +6,6 @@ delivered as a Claude Code plugin. Claude orchestrates established tools
 work (triage, safe case creation). The pipeline is a thin wrapper over existing
 tools, not a new analysis engine.
 
-- **Spec:** [`tz-re-pipeline.md`](tz-re-pipeline.md) (v2.1)
 - **Plugin:** [`gralloch-plugin/`](gralloch-plugin/) — manifest, MCP server, skills, commands, hooks
 - **Marketplace:** `.claude-plugin/marketplace.json` (repo root is an installable marketplace)
 - **Test data:** [`testdata/`](testdata/) — safe corpus tooling + a `pefile` cross-check
@@ -55,4 +54,4 @@ JSON Schema, hook unit tests, script syntax).
 Samples are stored read-only without an executable extension; a fail-closed
 `PreToolUse` hook blocks host-side execution, read-only removal, and antivirus
 tampering; dynamic analysis runs only inside a VM; sample-derived text is treated
-as untrusted data. See `tz-re-pipeline.md` section 4 and the `gralloch-isolation` skill.
+as untrusted data. See the `gralloch-isolation` skill.

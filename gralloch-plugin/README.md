@@ -2,7 +2,7 @@
 
 Isolation-first, semi-automatic reverse-engineering pipeline for **Windows PE**,
 packaged as a Claude Code plugin. Claude orchestrates; a native Rust MCP server
-(`gralloch-mcp`) does the fast deterministic work. Full spec: `../tz-re-pipeline.md`.
+(`gralloch-mcp`) does the fast deterministic work.
 
 MVP scope: profile `understand`, stages 0-1 (case creation + triage) end-to-end.
 
@@ -63,7 +63,7 @@ claude plugin validate .\gralloch-plugin --strict
 - Dynamic analysis runs only inside the VM. The host does static work only.
 - Sample-derived text is treated as untrusted data (prompt-injection aware).
 
-See `skills/gralloch-isolation/SKILL.md` and `tz-re-pipeline.md` section 4.
+See `skills/gralloch-isolation/SKILL.md`.
 
 ## Status
 

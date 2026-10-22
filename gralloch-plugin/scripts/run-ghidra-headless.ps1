@@ -1,18 +1,3 @@
-<#
-  Orchestrates Ghidra headless static analysis for a gralloch case (stage 3).
-
-  Runs analyzeHeadless to import and auto-analyze the stored sample, then runs
-  the ghidra_export.py post-script to dump functions/strings/xrefs JSON into the
-  case's artifacts/ghidra/ directory.
-
-  This is STATIC analysis: analyzeHeadless disassembles the sample, it does NOT
-  execute it. Safe to run on the host.
-
-  Usage:
-    .\run-ghidra-headless.ps1 -CaseDir <case dir> [-GhidraDir <ghidra install>]
-
-  GhidraDir defaults to $env:GHIDRA_INSTALL_DIR.
-#>
 param(
     [Parameter(Mandatory = $true)][string]$CaseDir,
     [string]$GhidraDir = $env:GHIDRA_INSTALL_DIR,

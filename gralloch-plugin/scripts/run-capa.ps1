@@ -1,22 +1,3 @@
-<#
-  Runs capa (https://github.com/mandiant/capa) against a gralloch case's stored
-  sample and writes the raw capa JSON report to artifacts/capa.json (stage 1
-  enrichment).
-
-  This is STATIC analysis: capa disassembles the sample (default vivisect
-  backend), it does NOT execute it. Safe to run on the host. The stored sample
-  stays read-only with its non-executable .bin name.
-
-  The raw report can be large; do NOT read it wholesale into the model. Run the
-  `capa_import` MCP tool afterwards to fold a bounded summary into triage.json
-  and write artifacts/capa-summary.json.
-
-  Usage:
-    .\run-capa.ps1 -CaseDir <case dir> [-CapaExe <capa.exe>] [-RulesDir <dir>]
-
-  capa resolution order: -CapaExe, then `capa` on PATH, then `python -m capa`.
-  -RulesDir (or $env:CAPA_RULES) is only needed if your capa has no bundled rules.
-#>
 param(
     [Parameter(Mandatory = $true)][string]$CaseDir,
     [string]$CapaExe,
@@ -42,10 +23,6 @@ New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
 $outJson = Join-Path $artifacts 'capa.json'
 $errLog  = Join-Path $artifacts 'capa.stderr.log'
 
-# Resolve the capa invocation. The standalone capa.exe from the capa GitHub
-# releases is preferred: it bundles the rules and signatures. The pip library
-# (`flare-capa`) ships WITHOUT embedded rules, so `python -m capa.main` only
-# works if a rule set is supplied (-RulesDir / $env:CAPA_RULES).
 if (-not $CapaExe -and $env:CAPA_EXE) { $CapaExe = $env:CAPA_EXE }
 if ($CapaExe) {
     if (-not (Test-Path $CapaExe)) { throw "capa not found at -CapaExe: $CapaExe" }
@@ -63,7 +40,6 @@ if ($CapaExe) {
     $argList = @('-m', 'capa.main')
 }
 
-# -j: JSON to stdout. Format is auto-detected from content, not the .bin name.
 $argList += @('-j')
 if ($RulesDir) { $argList += @('-r', $RulesDir) }
 $argList += @($sample)
@@ -75,9 +51,7 @@ if (-not $p.WaitForExit($TimeoutSec * 1000)) {
     try { $p.Kill() } catch {}
     throw "capa timed out after ${TimeoutSec}s"
 }
-# Flush async redirection and let ExitCode settle. With -RedirectStandardOutput
-# the PassThru object can report a null ExitCode until a blocking wait; the real
-# success gate below is "output parses as capa JSON", so a null code is tolerated.
+
 $p.WaitForExit() | Out-Null
 $code = try { $p.ExitCode } catch { $null }
 $errTail = if (Test-Path $errLog) { (Get-Content $errLog -Tail 15) -join "`n" } else { '' }
@@ -87,7 +61,7 @@ if ($null -ne $code -and $code -ne 0) {
 if (-not (Test-Path $outJson) -or (Get-Item $outJson).Length -eq 0) {
     throw "capa produced no output at $outJson.`n$errTail"
 }
-# Real success gate: output must be a capa JSON report (meta + rules).
+
 try {
     $probe = Get-Content -Raw $outJson | ConvertFrom-Json
     if (-not $probe.meta -or -not $probe.rules) { throw "missing meta/rules" }

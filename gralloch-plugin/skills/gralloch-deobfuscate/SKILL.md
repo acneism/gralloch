@@ -37,6 +37,6 @@ Writes `artifacts/deobfuscated.json` with:
 
 - Static decoders only: ASCII/UTF-16LE strings, single-byte XOR, base64.
 - Multi-byte/rolling XOR, RC4, and custom decryptor routines need emulation of a
-  bounded code range (unicorn/keystone). Per the spec that is executing sample
+  bounded code range (unicorn/keystone). That is executing sample
   code, allowed only on a selected range inside the VM (stage 5) — not here.
 - A decode is a lead; confirm meaning with static (stage 3) / dynamic (stage 5).

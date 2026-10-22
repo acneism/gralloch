@@ -1,15 +1,3 @@
-//! Stage 6 verification: validate the case's hypothesis ledger against the rule
-//! "record only what is confirmed" (spec 7.4). A hypothesis may be `confirmed`
-//! only with an `evidence` reference to an artifact that actually exists in the
-//! case (a trace/log/dump). This tool reads `hypotheses.json`, enforces that
-//! discipline deterministically, and lists the hypotheses ready for writeback.
-//!
-//! Writeback itself (applying confirmed names/types back into the Ghidra
-//! database) goes through a Ghidra MCP with a single writer — it is external and
-//! not done here. This tool only reads/validates JSON; it executes nothing.
-//!
-//! Statements and evidence are sample-derived: untrusted.
-
 use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -181,7 +169,6 @@ pub fn verify(case_dir: &str) -> Result<VerifyResult> {
     Ok(VerifyResult { summary })
 }
 
-/// Validate one hypothesis; returns a list of issues (empty = OK).
 fn classify(h: &Hyp, evidence_found: bool, dup_id: bool) -> Vec<String> {
     let mut issues = Vec::new();
     if h.id.trim().is_empty() {
@@ -209,9 +196,6 @@ fn classify(h: &Hyp, evidence_found: bool, dup_id: bool) -> Vec<String> {
     issues
 }
 
-/// True if `evidence` references a file that exists in the case. Accepts a path
-/// relative to the case dir (optionally with a `#fragment`), or just a filename
-/// that lives under artifacts/.
 fn evidence_exists(case_dir: &Path, evidence: &str) -> bool {
     let e = evidence.split('#').next().unwrap_or(evidence).trim();
     if e.is_empty() {
@@ -244,12 +228,12 @@ mod tests {
 
     #[test]
     fn confirmed_needs_existing_evidence() {
-        // confirmed, evidence present but not found -> issue
+
         let got = classify(&hyp("h1", "confirmed", "artifacts/dynamic.json"), false, false);
         assert!(got.iter().any(|i| i.contains("evidence not found")));
-        // confirmed, evidence present and found -> OK
+
         assert!(classify(&hyp("h1", "confirmed", "artifacts/dynamic.json"), true, false).is_empty());
-        // confirmed, no evidence -> issue
+
         assert!(classify(&hyp("h1", "confirmed", ""), false, false)
             .iter()
             .any(|i| i.contains("no evidence")));

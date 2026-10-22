@@ -1,7 +1,3 @@
-<#
-  Assembles a SAFE triage corpus in .\corpus (git-ignored).
-  Benign system PEs + deliberately malformed files. No live malware.
-#>
 $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $corpus = Join-Path $here 'corpus'
@@ -21,13 +17,11 @@ else { Write-Warning "no system exe found" }
 if ($dll) { Copy-Item $dll (Join-Path $corpus 'signed_system.dll') -Force; Write-Host "dll  <- $dll" }
 else { Write-Warning "no system dll found" }
 
-# MZ header + zeros, no PE header.
 $mz = New-Object byte[] 128
 $mz[0] = 0x4D; $mz[1] = 0x5A
 [IO.File]::WriteAllBytes((Join-Path $corpus 'mz_only.bin'), $mz)
 Write-Host "mz_only.bin written"
 
-# First 256 bytes of a real PE (truncated).
 if ($exe) {
     $all = [IO.File]::ReadAllBytes($exe)
     $n = [Math]::Min(256, $all.Length)
@@ -35,7 +29,6 @@ if ($exe) {
     Write-Host "truncated.bin written ($n bytes)"
 }
 
-# Random garbage.
 $g = New-Object byte[] 1024
 (New-Object System.Random).NextBytes($g)
 [IO.File]::WriteAllBytes((Join-Path $corpus 'garbage.bin'), $g)

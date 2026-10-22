@@ -5,7 +5,7 @@ description: Stage 6 verification for the gralloch pipeline — enforce "record 
 
 # gralloch verification (stage 6)
 
-The pipeline's core rule (spec §4, §7.4): a conclusion drawn from the sample is a
+The pipeline's core rule: a conclusion drawn from the sample is a
 **hypothesis** until dynamic evidence confirms it. Names written into Ghidra at
 stage 3 carry the same status and are NOT confirmed until here.
 

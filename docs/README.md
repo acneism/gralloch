@@ -65,5 +65,4 @@ time — they are declared as the plugin's `userConfig`:
 /gralloch --report <case-dir>                  # final report with everything folded in
 ```
 
-See `tz-re-pipeline.md` (v2.1) for the full specification and the
-`gralloch-*` skills for the per-stage guidance.
+See the `gralloch-*` skills for the per-stage guidance.

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://gralloch/schemas/hypotheses.schema.json",
   "title": "gralloch hypothesis ledger",
-  "description": "The case's tracked hypotheses (spec 7.4). Array of hypotheses, or {\"hypotheses\":[...]}. A hypothesis may be 'confirmed' only with an 'evidence' reference to an artifact in the case. Statements/evidence are sample-derived and untrusted.",
+  "description": "The case's tracked hypotheses. Array of hypotheses, or {\"hypotheses\":[...]}. A hypothesis may be 'confirmed' only with an 'evidence' reference to an artifact in the case. Statements/evidence are sample-derived and untrusted.",
   "oneOf": [
     { "type": "array", "items": { "$ref": "#/$defs/hypothesis" } },
     {

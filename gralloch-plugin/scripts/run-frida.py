@@ -1,23 +1,7 @@
-#!/usr/bin/env python3
-"""Run the gralloch Frida tracer against a sample and write trace.json.
-
-!!! RUN ONLY INSIDE THE ANALYSIS VM !!!
-This EXECUTES the sample. Preconditions (your responsibility, per the spec):
-  - a dedicated Windows analysis VM on an active snapshot (roll back afterwards),
-  - network off or faked (FakeNet-NG) -- mandatory for the `malware` profile,
-  - the sample and this script transferred into the VM (manual for `malware`).
-Never run this on the host. The host-side `dynamic_import` tool then normalizes
-the resulting trace.json; copy trace.json back to the case's artifacts/.
-
-Usage (inside the VM):
-  python run-frida.py --sample <sample> --script frida_trace.js \
-      --out trace.json --timeout 20 --yes-run-in-vm
-"""
 import argparse
 import json
 import sys
 import time
-
 
 def main():
     ap = argparse.ArgumentParser()
@@ -32,7 +16,7 @@ def main():
     if not args.yes_run_in_vm:
         sys.exit("refusing to run: pass --yes-run-in-vm to confirm this is the VM, not the host")
 
-    import frida  # imported late so the host can read/lint this file without frida installed
+    import frida
 
     events = []
 
@@ -68,7 +52,6 @@ def main():
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump(trace, f, indent=2)
     print("wrote %d events to %s" % (len(events), args.out))
-
 
 if __name__ == "__main__":
     main()

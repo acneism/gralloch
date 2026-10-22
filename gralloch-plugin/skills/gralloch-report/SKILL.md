@@ -25,7 +25,7 @@ findings are split correctly.
 - **Confirmed vs hypotheses.** Only evidence-backed, confirmed hypotheses (from
   `verification.json`) go in the *Confirmed* section; everything else is listed
   as a hypothesis. capa/YARA matches are shown as *leads*, never verdicts
-  (spec §4: conclusions from sample text are hypotheses until verified).
+  (conclusions from sample text are hypotheses until verified).
 - **Prompt-injection safety.** Every sample-derived string (IOCs, strings,
   rule/capability names, statements) is sanitized — control chars/newlines
   stripped, wrapped as inline code — so a crafted string cannot forge report

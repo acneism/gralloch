@@ -21,7 +21,7 @@ The script copies `gralloch-mcp.exe` to `../bin/`, where `.mcp.json` expects it.
 
 Prerequisites: [rustup](https://rustup.rs) and the MSVC C++ Build Tools
 (`x86_64-pc-windows-msvc`). YARA is behind the `yara` cargo feature and off by
-default (see `tz-re-pipeline.md` section 8).
+default.
 
 ## Verify before relying on pinned versions
 

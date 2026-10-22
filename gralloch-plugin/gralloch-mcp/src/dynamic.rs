@@ -1,12 +1,3 @@
-//! Stage 5 dynamics: INGEST a behavioral trace produced INSIDE THE VM and
-//! normalize it into `artifacts/dynamic.json`. This tool only parses a JSON
-//! file the user brought back from the VM — it NEVER executes the sample. The
-//! execution (Frida/x64dbg) happens in the VM on the user's command; see
-//! scripts/frida_trace.js + run-frida.py and the gralloch-dynamics skill.
-//!
-//! All trace content (paths, hosts, command lines) is sample-controlled:
-//! untrusted.
-
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
@@ -63,7 +54,7 @@ pub struct DynamicResult {
 
 pub fn dynamic_import(case_dir: &str, trace_path: &str) -> Result<DynamicResult> {
     let case_dir = PathBuf::from(case_dir);
-    // case.json is optional context; tolerate its absence.
+
     let _ = casedir::read_case_json(&case_dir);
 
     let raw = fs::read_to_string(trace_path)
@@ -73,7 +64,6 @@ pub fn dynamic_import(case_dir: &str, trace_path: &str) -> Result<DynamicResult>
     let tool = v.get("tool").and_then(Value::as_str).unwrap_or("frida").to_string();
     let sample = v.get("sample").and_then(Value::as_str).unwrap_or("").to_string();
 
-    // Accept {events:[...]} or a bare array.
     let events = v
         .get("events")
         .and_then(Value::as_array)
@@ -99,7 +89,7 @@ pub fn dynamic_import(case_dir: &str, trace_path: &str) -> Result<DynamicResult>
                 anti.push(label);
             }
         }
-        // Dedup identical (cat, api, detail) triples.
+
         let key = format!("{cat}\u{1}{api}\u{1}{detail}");
         if seen.insert(key, ()).is_some() {
             continue;
@@ -127,7 +117,6 @@ pub fn dynamic_import(case_dir: &str, trace_path: &str) -> Result<DynamicResult>
         modules: details("module"),
     };
 
-    // Classic remote-injection trio in the memory category.
     let mem_apis: Vec<String> = by_category
         .get("memory")
         .map(|v| v.iter().map(|e| e.api.clone()).collect())
@@ -206,7 +195,7 @@ mod tests {
             ]
         });
         let v = &trace;
-        // mimic the core of dynamic_import on an in-memory value
+
         let events = v.get("events").and_then(Value::as_array).unwrap();
         let mut net = 0;
         let mut seen = std::collections::BTreeSet::new();

@@ -1,14 +1,3 @@
-//! gralloch-mcp: native MCP server for the gralloch reverse-engineering pipeline.
-//!
-//! Tools exposed over stdio:
-//!   - case_new : hash a sample, store it read-only without an executable
-//!                extension, write case.json + notes.md. Never executes it.
-//!   - triage   : parse the stored PE (format, arch, sections+entropy, imports,
-//!                overlay, heuristic packer check) and write artifacts/triage.json.
-//!
-//! Isolation note: this server only ever READS the sample bytes. It contains no
-//! code path that launches a process from the sample (see tz-re-pipeline.md 4).
-
 mod capa;
 mod casedir;
 mod deobf;
@@ -27,7 +16,7 @@ use crate::server::Gralloch;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Logs go to STDERR. stdout carries the MCP protocol and must stay clean.
+
     tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .with_writer(std::io::stderr)

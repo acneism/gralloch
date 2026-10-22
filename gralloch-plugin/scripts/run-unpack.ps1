@@ -1,23 +1,3 @@
-<#
-  Stage 2 STATIC unpacking for a gralloch case.
-
-  Handles only deterministic, static unpackers (currently UPX) on the host. This
-  is a static transform: upx decompresses the stored image, it does NOT execute
-  the sample. The stored sample stays read-only; upx reads a throwaway copy and
-  writes a new read-only, non-executable artifact.
-
-  Runtime / memory-dump unpacking (Themida, VMProtect, custom stubs, OEP search
-  with Frida / x64dbg) EXECUTES the sample and therefore belongs in the VM as
-  stage 5 — never here. For those, this script records a route to stage 5.
-
-  After a successful unpack, return to stage 1: run `case_new` on the unpacked
-  artifact and `triage` it again (see the gralloch-unpack skill).
-
-  Usage:
-    .\run-unpack.ps1 -CaseDir <case dir> [-UpxExe <upx.exe>]
-
-  upx resolution: -UpxExe, then $env:UPX_EXE, then `upx` on PATH.
-#>
 param(
     [Parameter(Mandatory = $true)][string]$CaseDir,
     [string]$UpxExe = $env:UPX_EXE,
@@ -37,7 +17,6 @@ $artifacts = Join-Path $casePath 'artifacts'
 New-Item -ItemType Directory -Force -Path $artifacts | Out-Null
 $unpackJson = Join-Path $artifacts 'unpack.json'
 
-# Resolve upx.
 if (-not $UpxExe -and (Get-Command upx -ErrorAction SilentlyContinue)) {
     $UpxExe = (Get-Command upx).Source
 }
@@ -45,10 +24,6 @@ if (-not $UpxExe -or -not (Test-Path $UpxExe)) {
     throw "upx not found. Install upx (https://github.com/upx/upx/releases) and pass -UpxExe or set `$env:UPX_EXE."
 }
 
-# upx writes to stderr for normal "not packed" / info messages. Under
-# $ErrorActionPreference='Stop', PowerShell 5.1 turns a native command's stderr
-# into a terminating NativeCommandError, so run upx with a local 'Continue' and
-# decide on the exit code, not on stderr.
 function Invoke-Upx([string[]]$UpxArgs) {
     $old = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
@@ -61,8 +36,7 @@ function Invoke-Upx([string[]]$UpxArgs) {
 }
 
 function Write-Unpack($obj) {
-    # UTF-8 without BOM: Set-Content -Encoding utf8 emits a BOM in PS 5.1, which
-    # strict JSON parsers (python json, serde) reject.
+
     $json = $obj | ConvertTo-Json -Depth 6
     [System.IO.File]::WriteAllText($unpackJson, $json, (New-Object System.Text.UTF8Encoding($false)))
 }
@@ -74,7 +48,6 @@ $base = @{
     input          = @{ stored_sample = $case.stored_sample; sha256 = $inHash; size = (Get-Item $sample).Length }
 }
 
-# Is it UPX? upx -t detects by content (the .bin name is irrelevant to upx).
 $isUpx = ((Invoke-Upx @('-t', $sample)).Code -eq 0)
 
 if (-not $isUpx) {
@@ -90,7 +63,6 @@ if (-not $isUpx) {
     return
 }
 
-# Static UPX unpack on a throwaway copy; never touch the read-only stored sample.
 $unpackedDir = Join-Path $artifacts 'unpacked'
 New-Item -ItemType Directory -Force -Path $unpackedDir | Out-Null
 $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("gralloch_upx_" + [guid]::NewGuid().ToString('N') + '.bin')
@@ -111,7 +83,7 @@ try {
         Write-Host "UPX detected but static unpack failed. Route: stage 5." -ForegroundColor Yellow
         return
     }
-    # Store the unpacked artifact read-only with a non-executable .bin name.
+
     $outHash = (Get-FileHash -Algorithm SHA256 $outTmp).Hash.ToLower()
     $dest = Join-Path $unpackedDir ($outHash + '.bin')
     Copy-Item $outTmp $dest -Force

@@ -1,14 +1,6 @@
-"""Independent triage reference using pefile.
-
-Prints a triage-shaped summary of a PE so you can compare gralloch-mcp's
-artifacts/triage.json against a second implementation. Not part of the plugin.
-
-Usage:  python pe_reference.py <path-to-pe>
-"""
 import json
 import math
 import sys
-
 
 def shannon(data: bytes) -> float:
     if not data:
@@ -24,7 +16,6 @@ def shannon(data: bytes) -> float:
             h -= p * math.log2(p)
     return round(h, 2)
 
-
 def main(path: str) -> int:
     try:
         import pefile
@@ -37,7 +28,7 @@ def main(path: str) -> int:
 
     try:
         pe = pefile.PE(data=raw, fast_load=False)
-    except Exception as e:  # noqa: BLE001 - mirror gralloch's "clean error" expectation
+    except Exception as e:
         print(json.dumps({"error": f"not a valid PE: {e}"}, indent=2))
         return 1
 
@@ -80,7 +71,6 @@ def main(path: str) -> int:
     }
     print(json.dumps(report, indent=2))
     return 0
-
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

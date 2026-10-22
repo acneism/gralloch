@@ -1,5 +1,3 @@
-//! Cryptographic hashes of the raw sample bytes.
-
 use md5::Md5;
 use sha1::Sha1;
 use sha2::{Digest, Sha256};

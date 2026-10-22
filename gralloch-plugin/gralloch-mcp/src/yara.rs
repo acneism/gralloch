@@ -1,15 +1,3 @@
-//! Stage 1 YARA scanning (cargo feature `yara`).
-//!
-//! Compiles a baseline embedded ruleset (plus an optional external rules dir),
-//! scans the stored sample, writes a bounded `artifacts/yara.json`, and folds
-//! the hits into `triage.json`'s `yara` block.
-//!
-//! yara-x pulls wasmtime + a C dependency and raises the MSRV, so it is behind
-//! the `yara` feature (off by default). Without the feature the tool returns a
-//! clear "rebuild with --features yara" error.
-//!
-//! Rule names and matched content are sample-derived and untrusted.
-
 use anyhow::Result;
 
 pub struct YaraResult {
@@ -45,7 +33,6 @@ mod imp {
     const MAX_HITS: usize = 500;
     const MAX_HITS_IN_TRIAGE: usize = 300;
 
-    // Baseline rules shipped with the plugin, embedded at compile time.
     const EMBEDDED: &[(&str, &str)] = &[
         ("packers.yar", include_str!("../rules/packers.yar")),
         ("indicators.yar", include_str!("../rules/indicators.yar")),
@@ -92,7 +79,6 @@ mod imp {
         let bytes =
             fs::read(&stored).with_context(|| format!("reading {}", stored.display()))?;
 
-        // Compile embedded + optional external rules.
         let mut compiler = yara_x::Compiler::new();
         for (name, src) in EMBEDDED {
             compiler
@@ -168,7 +154,6 @@ mod imp {
         fs::write(&out_path, serde_json::to_string_pretty(&report)?)
             .with_context(|| format!("writing {}", out_path.display()))?;
 
-        // Fold hit rule names into triage.json if present.
         let triage_path = case_dir.join("artifacts").join("triage.json");
         if triage_path.exists() {
             let mut tv: Value = serde_json::from_str(&fs::read_to_string(&triage_path)?)
@@ -209,7 +194,7 @@ mod imp {
 
     #[cfg(test)]
     mod tests {
-        // Catches a typo in any bundled rule at test time (not first scan).
+
         #[test]
         fn embedded_rules_compile_and_match() {
             let mut c = yara_x::Compiler::new();

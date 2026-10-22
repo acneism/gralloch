@@ -1,9 +1,3 @@
-//! Case creation and the on-disk `case.json` state file (stage 0).
-//!
-//! The sample is stored as `sample/<sha256>.bin` (NO executable extension) and
-//! marked read-only. This is the deterministic half of the isolation guarantee
-//! (tz-re-pipeline.md 4.3); the PreToolUse hook is the tripwire on top of it.
-
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -32,9 +26,9 @@ pub struct ToolVersions {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Isolation {
-    /// Intended VM network mode. The user/skill must verify it before dynamics.
+
     pub network: String,
-    /// Whether a clean VM snapshot has been confirmed (user asserts this).
+
     pub snapshot_confirmed: bool,
 }
 
@@ -42,12 +36,12 @@ pub struct Isolation {
 pub struct CaseJson {
     pub schema_version: String,
     pub profile: String,
-    /// Current pipeline stage (0..=7).
+
     pub stage: u8,
     pub hashes: HashesJson,
     pub original_name: String,
     pub original_ext: String,
-    /// Path to the stored sample, relative to the case dir: `sample/<sha256>.bin`.
+
     pub stored_sample: String,
     pub size: u64,
     pub tool_versions: ToolVersions,
@@ -58,7 +52,6 @@ pub struct CaseNewResult {
     pub summary: String,
 }
 
-/// Create a new case under `cases_root` from the file at `sample_path`.
 pub fn case_new(sample_path: &str, cases_root: &str, profile: &str) -> Result<CaseNewResult> {
     if !PROFILES.contains(&profile) {
         bail!("unknown profile '{profile}'; expected one of {PROFILES:?}");
@@ -80,7 +73,6 @@ pub fn case_new(sample_path: &str, cases_root: &str, profile: &str) -> Result<Ca
         .map(|s| s.to_string_lossy().into_owned())
         .unwrap_or_default();
 
-    // Case id = first 16 hex chars of sha256 (collision-safe enough for a folder).
     let case_id = &h.sha256[..16];
     let case_dir = Path::new(cases_root).join(case_id);
     let sample_dir = case_dir.join("sample");
@@ -89,7 +81,6 @@ pub fn case_new(sample_path: &str, cases_root: &str, profile: &str) -> Result<Ca
     fs::create_dir_all(&artifacts_dir)
         .with_context(|| format!("creating {}", artifacts_dir.display()))?;
 
-    // Store WITHOUT an executable extension, then mark read-only.
     let stored_rel = format!("sample/{}.bin", h.sha256);
     let stored_path = sample_dir.join(format!("{}.bin", h.sha256));
     fs::write(&stored_path, &bytes)
@@ -191,7 +182,7 @@ fn set_readonly(path: &Path) -> Result<()> {
 #[cfg(not(windows))]
 fn set_readonly(path: &Path) -> Result<()> {
     use std::os::unix::fs::PermissionsExt;
-    // r--r--r--
+
     fs::set_permissions(path, fs::Permissions::from_mode(0o444))?;
     Ok(())
 }

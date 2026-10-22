@@ -1,5 +1,3 @@
-//! MCP tool surface for gralloch-mcp (rmcp 3.x).
-
 use rmcp::handler::server::wrapper::Parameters;
 use rmcp::model::{CallToolResult, ContentBlock};
 use rmcp::{schemars, tool, tool_handler, tool_router, ServerHandler};
@@ -91,7 +89,7 @@ impl Gralloch {
         &self,
         Parameters(p): Parameters<CaseNewParams>,
     ) -> Result<CallToolResult, rmcp::ErrorData> {
-        // cases_root: explicit param, else the configured GRALLOCH_CASES_ROOT.
+
         let cases_root = if p.cases_root.trim().is_empty() {
             std::env::var("GRALLOCH_CASES_ROOT").unwrap_or_default()
         } else {

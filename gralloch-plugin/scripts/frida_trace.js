@@ -1,14 +1,3 @@
-// gralloch Frida behavioral tracer (stage 5).
-//
-// RUN THIS ONLY INSIDE THE ANALYSIS VM, on an active snapshot, with the network
-// off or faked (FakeNet-NG). It EXECUTES the sample — never run it on the host.
-//
-// It hooks common Windows APIs and emits one structured event per call as a
-// `send()` message: { t:"gralloch", cat, api, detail }. The run-frida.py runner
-// (or a Frida MCP) collects these into trace.json, which the host-side
-// `dynamic_import` tool then normalizes. Keep hooks in try/catch so a missing
-// export never aborts the session.
-
 'use strict';
 
 function emit(cat, api, detail) {
@@ -18,7 +7,6 @@ function emit(cat, api, detail) {
 function wstr(p) { try { return p.isNull() ? '' : p.readUtf16String(); } catch (e) { return ''; } }
 function astr(p) { try { return p.isNull() ? '' : p.readAnsiString(); } catch (e) { return ''; } }
 
-// [module, export, category, argReader(args) -> detail string]
 const HOOKS = [
   ['kernel32.dll', 'CreateFileW', 'filesystem', a => wstr(a[0])],
   ['kernel32.dll', 'CreateFileA', 'filesystem', a => astr(a[0])],
@@ -53,7 +41,7 @@ const HOOKS = [
 ];
 
 function sockaddr(p) {
-  // sockaddr_in: family(2) port(2, be) addr(4)
+
   try {
     const port = (p.add(2).readU8() << 8) | p.add(3).readU8();
     const ip = p.add(4).readU8() + '.' + p.add(5).readU8() + '.' + p.add(6).readU8() + '.' + p.add(7).readU8();
@@ -74,7 +62,7 @@ for (const [mod, exp, cat, reader] of HOOKS) {
     });
     installed++;
   } catch (e) {
-    // export not present in this image; skip quietly
+
   }
 }
 emit('meta', 'ready', installed + ' hooks installed');
