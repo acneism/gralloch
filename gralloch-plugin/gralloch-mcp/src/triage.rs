@@ -5,7 +5,7 @@
 //! consumers (Claude) treat it as data, not instructions (tz-re-pipeline.md 4.4).
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use anyhow::{bail, Context, Result};
 use goblin::Object;

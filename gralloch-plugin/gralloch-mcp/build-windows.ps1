@@ -1,10 +1,12 @@
 <#
   Builds gralloch-mcp.exe and copies it into the plugin's bin/ directory.
 
-  Prerequisites:
-    - Rust toolchain via rustup:  https://rustup.rs
-    - MSVC C++ Build Tools (Visual Studio Build Tools, "Desktop development
-      with C++"), providing the x86_64-pc-windows-msvc linker.
+  Prerequisites: Rust via rustup (https://rustup.rs) plus a C linker. Either:
+    - MSVC: Visual Studio Build Tools, "Desktop development with C++"
+      (x86_64-pc-windows-msvc). Installing it typically needs admin rights.
+    - GNU (no admin): a MinGW-w64 gcc on PATH (e.g. WinLibs), then
+        rustup default stable-x86_64-pc-windows-gnu
+      The MVP build is pure Rust (yara off), so GNU links cleanly.
 
   Usage:
     .\build-windows.ps1          # light MVP build (no YARA)
