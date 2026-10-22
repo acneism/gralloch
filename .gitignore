@@ -1,0 +1,17 @@
+# OS / editor noise
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*~
+
+# Build outputs (also covered by per-directory .gitignore files)
+re-lab-plugin/relab-mcp/target/
+re-lab-plugin/bin/relab-mcp.exe
+re-lab-plugin/bin/relab-mcp
+
+# Test corpus holds copied-in binaries
+testdata/corpus/
+
+# Case working data must live outside the repo
+cases/

@@ -1,0 +1,20 @@
+{
+  "name": "re-lab-marketplace",
+  "owner": {
+    "name": "re-lab maintainers"
+  },
+  "metadata": {
+    "description": "Marketplace for the re-lab reverse-engineering pipeline plugin.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "re-lab",
+      "source": "./re-lab-plugin",
+      "description": "Isolation-first, semi-automatic reverse-engineering pipeline for Windows PE: native Rust MCP triage, orchestrating Ghidra/capa/Frida externally.",
+      "version": "0.1.0",
+      "license": "MIT OR Apache-2.0",
+      "keywords": ["reverse-engineering", "malware-analysis", "pe", "triage", "mcp"]
+    }
+  ]
+}

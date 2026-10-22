@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://re-lab/schemas/case.schema.json",
+  "title": "relab case state",
+  "description": "Per-case state written by relab-mcp (case.json). Underpins reproducibility.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "profile",
+    "stage",
+    "hashes",
+    "original_name",
+    "stored_sample",
+    "size",
+    "tool_versions",
+    "isolation"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "profile": { "type": "string", "enum": ["understand", "malware", "vuln", "ctf"] },
+    "stage": { "type": "integer", "minimum": 0, "maximum": 7 },
+    "hashes": {
+      "type": "object",
+      "required": ["md5", "sha1", "sha256"],
+      "properties": {
+        "md5": { "type": "string", "pattern": "^[0-9a-f]{32}$" },
+        "sha1": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "original_name": { "type": "string" },
+    "original_ext": { "type": "string" },
+    "stored_sample": { "type": "string", "pattern": "^sample/[0-9a-f]{64}\\.bin$" },
+    "size": { "type": "integer", "minimum": 0 },
+    "tool_versions": {
+      "type": "object",
+      "required": ["relab_mcp"],
+      "properties": {
+        "relab_mcp": { "type": "string" },
+        "ghidra": { "type": "string" },
+        "capa": { "type": "string" },
+        "yara_rules": { "type": "string" }
+      }
+    },
+    "isolation": {
+      "type": "object",
+      "required": ["network", "snapshot_confirmed"],
+      "properties": {
+        "network": { "type": "string" },
+        "snapshot_confirmed": { "type": "boolean" }
+      }
+    }
+  }
+}

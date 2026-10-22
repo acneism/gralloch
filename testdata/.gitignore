@@ -1,0 +1,2 @@
+# Real PEs are copied in at setup time; don't commit binaries.
+corpus/
