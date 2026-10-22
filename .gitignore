@@ -1,3 +1,7 @@
+# Python bytecode (from py_compile / tooling)
+__pycache__/
+*.pyc
+
 # OS / editor noise
 Thumbs.db
 Desktop.ini
