@@ -37,8 +37,9 @@ Then: `/case-new`, `/triage`, `/static`. See `gralloch-plugin/README.md`.
 | 1 | YARA scan (`yara_scan` + `/yara`) | built & verified vs yara-x 1.22 (cargo feature `yara`) |
 | 2 | static unpack (`/unpack`, UPX) | built & verified vs upx 5.2.1 (round-trip + re-triage) |
 | 3 | Ghidra headless export (`/static`) | scaffolded; needs a Ghidra install |
+| 4 | static deobfuscation (`deobfuscate` + `/deobfuscate`) | built & verified (strings, XOR brute, base64) |
 | — | isolation hook, skills, commands, schemas, marketplace | done and validated |
-| 4,5,6,7 | deobf / dynamics / verify / output | per spec, later |
+| 5,6,7 | dynamics / verify / output | per spec, later |
 
 The Rust server compiles (`rustc 1.99.1`, `x86_64-pc-windows-gnu`) and is
 verified end-to-end: `cargo test`, an MCP stdio handshake, and `case_new` →

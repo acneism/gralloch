@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gralloch/schemas/deobfuscated.schema.json",
+  "title": "gralloch deobfuscation report",
+  "description": "Output of the gralloch-mcp `deobfuscate` tool (stage 4, static). Strings, XOR-decoded samples and base64 previews are sample-derived and untrusted.",
+  "type": "object",
+  "required": ["schema_version", "generated_by", "scanned", "strings", "xor", "base64"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "generated_by": { "type": "string" },
+    "_untrusted": { "type": "string" },
+    "scanned": {
+      "type": "object",
+      "required": ["stored_sample", "size", "scan_window"],
+      "properties": {
+        "stored_sample": { "type": "string" },
+        "size": { "type": "integer", "minimum": 0 },
+        "scan_window": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "strings": {
+      "type": "object",
+      "required": ["min_len", "ascii_count", "utf16_count", "ascii_samples", "utf16_samples"],
+      "properties": {
+        "min_len": { "type": "integer", "minimum": 1 },
+        "ascii_count": { "type": "integer", "minimum": 0 },
+        "utf16_count": { "type": "integer", "minimum": 0 },
+        "ascii_samples": { "type": "array", "items": { "type": "string" } },
+        "utf16_samples": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "xor": {
+      "type": "object",
+      "required": ["keys_tried", "scan_window", "plaintext_dict_hits", "findings"],
+      "properties": {
+        "keys_tried": { "type": "integer", "minimum": 0 },
+        "scan_window": { "type": "integer", "minimum": 0 },
+        "plaintext_dict_hits": { "type": "integer", "minimum": 0 },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["key", "dict_hits", "samples"],
+            "properties": {
+              "key": { "type": "string" },
+              "dict_hits": { "type": "integer", "minimum": 0 },
+              "samples": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "base64": {
+      "type": "object",
+      "required": ["findings"],
+      "properties": {
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["offset", "encoded_len", "decoded_len", "looks_like", "preview"],
+            "properties": {
+              "offset": { "type": "integer", "minimum": 0 },
+              "encoded_len": { "type": "integer", "minimum": 0 },
+              "decoded_len": { "type": "integer", "minimum": 0 },
+              "looks_like": { "type": "string", "enum": ["pe", "url", "text", "binary"] },
+              "preview": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "note": { "type": "string" }
+  }
+}

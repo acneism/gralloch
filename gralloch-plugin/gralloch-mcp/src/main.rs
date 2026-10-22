@@ -11,6 +11,7 @@
 
 mod capa;
 mod casedir;
+mod deobf;
 mod hashes;
 mod server;
 mod triage;
