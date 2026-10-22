@@ -23,6 +23,7 @@ pub fn report(case_dir: &str) -> Result<ReportResult> {
     let deobf = read_json(&a.join("deobfuscated.json"));
     let dynamic = read_json(&a.join("dynamic.json"));
     let verification = read_json(&a.join("verification.json"));
+    let ghidra = read_json(&a.join("ghidra").join("ghidra_export.json"));
 
     let mut used: Vec<&str> = Vec::new();
     for (name, present) in [
@@ -32,6 +33,7 @@ pub fn report(case_dir: &str) -> Result<ReportResult> {
         ("yara.json", yara.is_some()),
         ("unpack.json", unpack.is_some()),
         ("deobfuscated.json", deobf.is_some()),
+        ("ghidra/ghidra_export.json", ghidra.is_some()),
         ("dynamic.json", dynamic.is_some()),
         ("verification.json", verification.is_some()),
     ] {
@@ -63,6 +65,7 @@ pub fn report(case_dir: &str) -> Result<ReportResult> {
             "method": u.get("method").cloned().unwrap_or(Value::Null),
         })),
         "deobfuscation": deobf_summary(&deobf),
+        "static": ghidra_summary(&ghidra),
         "dynamics": dyn_summary(&dynamic),
         "iocs": {
             "network": &net, "files": &files, "registry": &registry,
@@ -200,6 +203,60 @@ fn dyn_summary(d: &Option<Value>) -> Value {
     }
 }
 
+fn ghidra_summary(g: &Option<Value>) -> Value {
+    let g = match g {
+        Some(g) => g,
+        None => return Value::Null,
+    };
+    let funcs = g.get("functions").and_then(Value::as_array);
+    let strings = g.get("strings").and_then(Value::as_array);
+    let xrefs_len = g.get("xrefs").and_then(Value::as_array).map(Vec::len).unwrap_or(0);
+
+    let mut tf: Vec<(String, String, u64)> = Vec::new();
+    if let Some(fs) = funcs {
+        for f in fs {
+            if f.get("is_thunk").and_then(Value::as_bool).unwrap_or(false)
+                || f.get("is_external").and_then(Value::as_bool).unwrap_or(false)
+            {
+                continue;
+            }
+            tf.push((
+                f.get("name").and_then(Value::as_str).unwrap_or("").to_string(),
+                f.get("entry").and_then(Value::as_str).unwrap_or("").to_string(),
+                f.get("size").and_then(Value::as_u64).unwrap_or(0),
+            ));
+        }
+    }
+    tf.sort_by(|a, b| b.2.cmp(&a.2));
+    tf.truncate(15);
+    let top_functions: Vec<Value> = tf
+        .into_iter()
+        .map(|(name, entry, size)| json!({ "name": name, "entry": entry, "size": size }))
+        .collect();
+
+    let sample_strings: Vec<Value> = strings
+        .map(|a| {
+            a.iter()
+                .filter_map(|s| s.get("value").and_then(Value::as_str))
+                .take(20)
+                .map(|s| Value::String(s.to_string()))
+                .collect()
+        })
+        .unwrap_or_default();
+
+    json!({
+        "language": g.pointer("/metadata/language").cloned().unwrap_or(Value::Null),
+        "function_count": g.pointer("/metadata/function_count").cloned().unwrap_or(Value::Null),
+        "exported": {
+            "functions": funcs.map(Vec::len).unwrap_or(0),
+            "strings": strings.map(Vec::len).unwrap_or(0),
+            "xrefs": xrefs_len,
+        },
+        "top_functions": top_functions,
+        "sample_strings": sample_strings,
+    })
+}
+
 fn dyn_ioc(d: &Option<Value>, key: &str) -> Vec<String> {
     d.as_ref()
         .and_then(|d| d.pointer(&format!("/iocs/{key}")))
@@ -301,6 +358,40 @@ fn render_md(
         for r in y.get("rules").and_then(Value::as_array).into_iter().flatten() {
             if let Some(s) = r.as_str() {
                 m.push_str(&format!("- {}\n", safe(s)));
+            }
+        }
+        m.push('\n');
+    }
+
+    if let Some(gh) = report.get("static").filter(|v| !v.is_null()) {
+        m.push_str("## Static analysis (Ghidra)\n\n");
+        fld(&mut m, "language", gh.get("language"));
+        fld(&mut m, "functions (total)", gh.get("function_count"));
+        if let Some(ex) = gh.get("exported") {
+            m.push_str(&format!(
+                "- exported: {} functions, {} strings, {} xrefs\n",
+                ex.get("functions").and_then(Value::as_u64).unwrap_or(0),
+                ex.get("strings").and_then(Value::as_u64).unwrap_or(0),
+                ex.get("xrefs").and_then(Value::as_u64).unwrap_or(0)
+            ));
+        }
+        let tf = gh.get("top_functions").and_then(Value::as_array);
+        if tf.map(|a| !a.is_empty()).unwrap_or(false) {
+            m.push_str("\n**Largest functions:**\n\n");
+            for f in tf.into_iter().flatten() {
+                let name = f.get("name").and_then(Value::as_str).unwrap_or("");
+                let entry = f.get("entry").and_then(Value::as_str).unwrap_or("");
+                let size = f.get("size").and_then(Value::as_u64).unwrap_or(0);
+                m.push_str(&format!("- {} {} (size {})\n", safe(entry), safe(name), size));
+            }
+        }
+        let ss = gh.get("sample_strings").and_then(Value::as_array);
+        if ss.map(|a| !a.is_empty()).unwrap_or(false) {
+            m.push_str("\n**Strings (sample):**\n\n");
+            for s in ss.into_iter().flatten() {
+                if let Some(v) = s.as_str() {
+                    m.push_str(&format!("- {}\n", safe(v)));
+                }
             }
         }
         m.push('\n');

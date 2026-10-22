@@ -15,6 +15,7 @@
     "yara": { "type": ["object", "null"] },
     "unpack": { "type": ["object", "null"] },
     "deobfuscation": { "type": ["object", "null"] },
+    "static": { "type": ["object", "null"] },
     "dynamics": { "type": ["object", "null"] },
     "iocs": {
       "type": "object",
