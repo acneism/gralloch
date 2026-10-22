@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gralloch/schemas/yara.schema.json",
+  "title": "gralloch YARA scan report",
+  "description": "Output of the gralloch-mcp `yara_scan` tool (cargo feature `yara`). Rule names and matched content are sample-derived and untrusted.",
+  "type": "object",
+  "required": ["schema_version", "generated_by", "rules_source", "scanned", "match_count", "hits", "truncated"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "generated_by": { "type": "string" },
+    "_untrusted": { "type": "string" },
+    "rules_source": {
+      "type": "object",
+      "required": ["embedded_files", "external_files"],
+      "properties": {
+        "embedded_files": { "type": "integer", "minimum": 0 },
+        "external_dir": { "type": ["string", "null"] },
+        "external_files": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "scanned": {
+      "type": "object",
+      "required": ["stored_sample", "size"],
+      "properties": {
+        "stored_sample": { "type": "string" },
+        "size": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "match_count": { "type": "integer", "minimum": 0 },
+    "hits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rule", "namespace", "tags", "meta"],
+        "properties": {
+          "rule": { "type": "string" },
+          "namespace": { "type": "string" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "meta": {}
+        }
+      }
+    },
+    "truncated": { "type": "boolean" }
+  }
+}

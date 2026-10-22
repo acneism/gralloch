@@ -14,6 +14,7 @@ mod casedir;
 mod hashes;
 mod server;
 mod triage;
+mod yara;
 
 use anyhow::Result;
 use rmcp::{transport::stdio, ServiceExt};

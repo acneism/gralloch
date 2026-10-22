@@ -129,9 +129,13 @@
     },
     "yara": {
       "type": "object",
+      "description": "YARA matches. Populated by the yara_scan tool (feature `yara`); enabled:false until then. See artifacts/yara.json for the full report.",
       "properties": {
         "enabled": { "type": "boolean" },
-        "hits": { "type": "array", "items": { "type": "string" } }
+        "source": { "type": "string" },
+        "count": { "type": "integer", "minimum": 0 },
+        "hits": { "type": "array", "items": { "type": "string" } },
+        "summary_file": { "type": "string" }
       }
     },
     "route": {

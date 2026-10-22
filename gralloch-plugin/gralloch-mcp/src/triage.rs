@@ -433,17 +433,10 @@ fn detect_packer(
     }
 }
 
-#[cfg(feature = "yara")]
 fn yara_scan(_bytes: &[u8]) -> YaraInfo {
-    // No rules are bundled yet; wiring yara-x compilation/scan comes later.
-    YaraInfo {
-        enabled: true,
-        hits: vec![],
-    }
-}
-
-#[cfg(not(feature = "yara"))]
-fn yara_scan(_bytes: &[u8]) -> YaraInfo {
+    // Placeholder. The dedicated `yara_scan` MCP tool (cargo feature `yara`)
+    // compiles rules, scans, and fills this block + writes artifacts/yara.json,
+    // so triage itself stays light and feature-independent.
     YaraInfo {
         enabled: false,
         hits: vec![],

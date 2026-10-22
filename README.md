@@ -34,6 +34,7 @@ Then: `/case-new`, `/triage`, `/static`. See `gralloch-plugin/README.md`.
 | 0 | case creation (`case_new`) | built & verified end-to-end |
 | 1 | triage (`triage`) | built & verified; cross-checked vs `pefile` |
 | 1 | capa enrichment (`capa_import` + `/capa`) | built & verified vs capa 10.0.0 |
+| 1 | YARA scan (`yara_scan` + `/yara`) | built & verified vs yara-x 1.22 (cargo feature `yara`) |
 | 2 | static unpack (`/unpack`, UPX) | built & verified vs upx 5.2.1 (round-trip + re-triage) |
 | 3 | Ghidra headless export (`/static`) | scaffolded; needs a Ghidra install |
 | — | isolation hook, skills, commands, schemas, marketplace | done and validated |
