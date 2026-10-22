@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gralloch/schemas/ghidra-export.schema.json",
+  "title": "gralloch Ghidra headless export",
+  "description": "Output of scripts/ghidra_export.py (stage 3). Function names, signatures and strings are sample-derived and untrusted.",
+  "type": "object",
+  "required": ["schema_version", "generated_by", "metadata", "functions", "strings", "xrefs"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "generated_by": { "type": "string" },
+    "_untrusted": { "type": "string" },
+    "metadata": {
+      "type": "object",
+      "required": ["program", "language", "image_base", "function_count"],
+      "properties": {
+        "program": { "type": "string" },
+        "language": { "type": "string" },
+        "image_base": { "type": "string" },
+        "function_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "functions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "entry", "size", "params", "is_thunk", "is_external"],
+        "properties": {
+          "name": { "type": "string" },
+          "entry": { "type": "string" },
+          "size": { "type": "integer", "minimum": 0 },
+          "params": { "type": "integer", "minimum": 0 },
+          "is_thunk": { "type": "boolean" },
+          "is_external": { "type": "boolean" },
+          "signature": { "type": "string" }
+        }
+      }
+    },
+    "strings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["addr", "value"],
+        "properties": {
+          "addr": { "type": "string" },
+          "value": { "type": "string" }
+        }
+      }
+    },
+    "xrefs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["to_func", "from_addr", "type"],
+        "properties": {
+          "to_func": { "type": "string" },
+          "from_addr": { "type": "string" },
+          "from_func": { "type": ["string", "null"] },
+          "type": { "type": "string" }
+        }
+      }
+    }
+  }
+}

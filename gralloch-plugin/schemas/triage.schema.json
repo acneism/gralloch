@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gralloch/schemas/triage.schema.json",
+  "title": "gralloch triage report",
+  "description": "Output of the gralloch-mcp `triage` tool (stage 1). Text under section names, imports and exports is sample-derived and untrusted.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_by",
+    "sample",
+    "format",
+    "entropy",
+    "sections",
+    "imports",
+    "exports",
+    "overlay",
+    "packer",
+    "route"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "generated_by": { "type": "string" },
+    "_untrusted": { "type": "string" },
+    "sample": {
+      "type": "object",
+      "required": ["stored_sample", "size", "sha256"],
+      "properties": {
+        "stored_sample": { "type": "string" },
+        "size": { "type": "integer", "minimum": 0 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "format": {
+      "type": "object",
+      "required": ["type", "arch", "machine", "is_dll", "entry_point", "section_count"],
+      "properties": {
+        "type": { "type": "string" },
+        "arch": { "type": "string" },
+        "machine": { "type": "string" },
+        "is_dll": { "type": "boolean" },
+        "subsystem": { "type": "string" },
+        "entry_point": { "type": "integer", "minimum": 0 },
+        "entry_section": { "type": ["string", "null"] },
+        "image_base": { "type": "integer", "minimum": 0 },
+        "timestamp": { "type": "integer", "minimum": 0 },
+        "section_count": { "type": "integer", "minimum": 0 },
+        "dotnet": { "type": "boolean" }
+      }
+    },
+    "entropy": {
+      "type": "object",
+      "required": ["overall"],
+      "properties": {
+        "overall": { "type": "number", "minimum": 0, "maximum": 8 }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "virtual_size", "raw_size", "entropy", "characteristics", "flags"],
+        "properties": {
+          "name": { "type": "string" },
+          "virtual_size": { "type": "integer", "minimum": 0 },
+          "raw_size": { "type": "integer", "minimum": 0 },
+          "entropy": { "type": "number", "minimum": 0, "maximum": 8 },
+          "characteristics": { "type": "string" },
+          "flags": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "imports": {
+      "type": "object",
+      "required": ["dll_count", "function_count", "by_dll"],
+      "properties": {
+        "dll_count": { "type": "integer", "minimum": 0 },
+        "function_count": { "type": "integer", "minimum": 0 },
+        "by_dll": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["dll", "functions"],
+            "properties": {
+              "dll": { "type": "string" },
+              "functions": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "exports": {
+      "type": "object",
+      "required": ["count", "names"],
+      "properties": {
+        "count": { "type": "integer", "minimum": 0 },
+        "names": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "overlay": {
+      "type": "object",
+      "required": ["present", "offset", "size"],
+      "properties": {
+        "present": { "type": "boolean" },
+        "offset": { "type": "integer", "minimum": 0 },
+        "size": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "packer": {
+      "type": "object",
+      "required": ["detected", "confidence", "source", "indicators"],
+      "properties": {
+        "detected": { "type": "boolean" },
+        "confidence": { "type": "string", "enum": ["none", "low", "medium", "high"] },
+        "source": { "type": "string" },
+        "indicators": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "properties": {
+        "source": { "type": "string" },
+        "available": { "type": "boolean" },
+        "note": { "type": "string" },
+        "items": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "yara": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "hits": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "route": {
+      "type": "object",
+      "required": ["recommended", "reason", "next_stage"],
+      "properties": {
+        "recommended": { "type": "string", "enum": ["unpack", "dotnet", "static"] },
+        "reason": { "type": "string" },
+        "next_stage": { "type": "integer", "minimum": 0, "maximum": 7 }
+      }
+    }
+  }
+}

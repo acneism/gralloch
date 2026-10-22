@@ -1,6 +1,6 @@
 # testdata — safe triage corpus
 
-Inputs for testing `relab-mcp` triage. **No live malware** — only benign PEs and
+Inputs for testing `gralloch-mcp` triage. **No live malware** — only benign PEs and
 deliberately malformed files. Real PEs are copied in at setup time and are
 git-ignored (`corpus/`); only this README and the scripts are committed.
 
@@ -27,7 +27,7 @@ the packer heuristic.
 ## Cross-check the triage design
 
 `pe_reference.py` prints a triage-shaped summary of a PE using the `pefile`
-library, as an independent reference to compare `relab-mcp triage` output against:
+library, as an independent reference to compare `gralloch-mcp triage` output against:
 
 ```powershell
 python -m pip install --quiet pefile

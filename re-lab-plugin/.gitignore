@@ -1,9 +1,0 @@
-# Rust build output
-relab-mcp/target/
-
-# Compiled server binary (built per-platform via relab-mcp/build-windows.ps1)
-bin/relab-mcp.exe
-bin/relab-mcp
-
-# Case working data must live OUTSIDE the plugin, but ignore any stray copy
-cases/

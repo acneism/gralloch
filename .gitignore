@@ -10,9 +10,9 @@ Desktop.ini
 *~
 
 # Build outputs (also covered by per-directory .gitignore files)
-re-lab-plugin/relab-mcp/target/
-re-lab-plugin/bin/relab-mcp.exe
-re-lab-plugin/bin/relab-mcp
+gralloch-plugin/gralloch-mcp/target/
+gralloch-plugin/bin/gralloch-mcp.exe
+gralloch-plugin/bin/gralloch-mcp
 
 # Test corpus holds copied-in binaries
 testdata/corpus/

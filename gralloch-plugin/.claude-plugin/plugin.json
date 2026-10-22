@@ -1,0 +1,16 @@
+{
+  "name": "gralloch",
+  "version": "0.1.0",
+  "license": "MIT OR Apache-2.0",
+  "description": "Isolation-first reverse-engineering pipeline for Windows PE. A native Rust MCP server (gralloch-mcp) does the fast deterministic work (triage, safe case creation); Ghidra/capa/Frida are orchestrated externally. See tz-re-pipeline.md.",
+  "author": {
+    "name": "gralloch maintainers"
+  },
+  "keywords": [
+    "reverse-engineering",
+    "malware-analysis",
+    "pe",
+    "triage",
+    "mcp"
+  ]
+}

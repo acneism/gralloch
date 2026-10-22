@@ -1,0 +1,9 @@
+# Rust build output
+gralloch-mcp/target/
+
+# Compiled server binary (built per-platform via gralloch-mcp/build-windows.ps1)
+bin/gralloch-mcp.exe
+bin/gralloch-mcp
+
+# Case working data must live OUTSIDE the plugin, but ignore any stray copy
+cases/

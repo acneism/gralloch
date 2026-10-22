@@ -1,6 +1,6 @@
 """Independent triage reference using pefile.
 
-Prints a triage-shaped summary of a PE so you can compare relab-mcp's
+Prints a triage-shaped summary of a PE so you can compare gralloch-mcp's
 artifacts/triage.json against a second implementation. Not part of the plugin.
 
 Usage:  python pe_reference.py <path-to-pe>
@@ -37,7 +37,7 @@ def main(path: str) -> int:
 
     try:
         pe = pefile.PE(data=raw, fast_load=False)
-    except Exception as e:  # noqa: BLE001 - mirror relab's "clean error" expectation
+    except Exception as e:  # noqa: BLE001 - mirror gralloch's "clean error" expectation
         print(json.dumps({"error": f"not a valid PE: {e}"}, indent=2))
         return 1
 
