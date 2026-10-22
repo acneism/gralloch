@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://gralloch/schemas/ghidra-export.schema.json",
   "title": "gralloch Ghidra headless export",
-  "description": "Output of scripts/ghidra_export.py (stage 3). Function names, signatures and strings are sample-derived and untrusted.",
+  "description": "Output of scripts/ghidra_export.java (stage 3). Function names, signatures and strings are sample-derived and untrusted.",
   "type": "object",
   "required": ["schema_version", "generated_by", "metadata", "functions", "strings", "xrefs"],
   "properties": {

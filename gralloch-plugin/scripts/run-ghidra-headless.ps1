@@ -36,8 +36,9 @@ Write-Host "Ghidra headless: importing $sample (static analysis only)..." -Foreg
 & $analyze `
     $projDir 'gralloch' `
     -import $sample `
+    -overwrite `
     -scriptPath $scriptDir `
-    -postScript 'ghidra_export.py' $exportJson `
+    -postScript 'ghidra_export.java' $exportJson `
     -analysisTimeoutPerFile $TimeoutSec `
     -deleteProject
 

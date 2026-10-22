@@ -35,7 +35,7 @@ absent is skipped, never fatal:
 |---|---|---|
 | capa standalone `capa.exe` | `/capa` | [capa releases](https://github.com/mandiant/capa/releases); bundles rules+signatures. Verified vs 10.0.0. |
 | `upx` | `/unpack` | [upx releases](https://github.com/upx/upx/releases). Verified vs 5.2.1. |
-| Ghidra | `/static` | set `GHIDRA_INSTALL_DIR` (or the plugin's config). |
+| Ghidra | `/static` | set `GHIDRA_INSTALL_DIR` (or the plugin's config). Ghidra 12.x needs a matching JDK (JDK 25 for 12.2) on `JAVA_HOME`. The export runs as a Java GhidraScript — no Python/Jython needed. |
 | Windows analysis VM + Frida | `/dynamics` | VM-only, user-initiated; snapshot active, network off/faked. |
 
 YARA needs no external tool — baseline rules ship in the plugin and run in the
@@ -99,7 +99,7 @@ All commands are documented in [`docs/README.md`](docs/README.md).
 | 1 | capa enrichment (`capa_import` + `/capa`) | built & verified vs capa 10.0.0 |
 | 1 | YARA scan (`yara_scan` + `/yara`) | built & verified vs yara-x 1.22 (cargo feature `yara`) |
 | 2 | static unpack (`/unpack`, UPX) | built & verified vs upx 5.2.1 (round-trip + re-triage) |
-| 3 | Ghidra headless export (`/static`) | scaffolded; needs a Ghidra install |
+| 3 | Ghidra headless export (`/static`) | built & verified vs Ghidra 12.2 (Java export script) |
 | 4 | static deobfuscation (`deobfuscate` + `/deobfuscate`) | built & verified (strings, XOR brute, base64) |
 | 5 | dynamics: VM trace + `dynamic_import` (`/dynamics`) | built & verified (host imports VM trace; never executes) |
 | 6 | verification (`verify` + `/verify`) | built & verified (confirmed⇒evidence; writeback via Ghidra MCP) |
