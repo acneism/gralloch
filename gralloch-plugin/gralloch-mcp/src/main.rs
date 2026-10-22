@@ -12,6 +12,7 @@
 mod capa;
 mod casedir;
 mod deobf;
+mod dynamic;
 mod hashes;
 mod server;
 mod triage;

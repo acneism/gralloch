@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gralloch/schemas/dynamic.schema.json",
+  "title": "gralloch dynamic trace summary",
+  "description": "Output of the gralloch-mcp `dynamic_import` tool (stage 5). Normalizes a behavioral trace produced inside the VM. All content is sample-controlled and untrusted.",
+  "type": "object",
+  "required": ["schema_version", "generated_by", "source", "trace", "event_count", "by_category", "iocs", "injection_suspected", "anti_analysis", "truncated"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "generated_by": { "type": "string" },
+    "_untrusted": { "type": "string" },
+    "source": { "type": "string" },
+    "trace": {
+      "type": "object",
+      "required": ["tool", "sample"],
+      "properties": {
+        "tool": { "type": "string" },
+        "sample": { "type": "string" }
+      }
+    },
+    "event_count": { "type": "integer", "minimum": 0 },
+    "by_category": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["api", "detail"],
+          "properties": {
+            "api": { "type": "string" },
+            "detail": { "type": "string" }
+          }
+        }
+      }
+    },
+    "iocs": {
+      "type": "object",
+      "required": ["network", "files", "registry", "processes", "modules"],
+      "properties": {
+        "network": { "type": "array", "items": { "type": "string" } },
+        "files": { "type": "array", "items": { "type": "string" } },
+        "registry": { "type": "array", "items": { "type": "string" } },
+        "processes": { "type": "array", "items": { "type": "string" } },
+        "modules": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "injection_suspected": { "type": "boolean" },
+    "anti_analysis": { "type": "array", "items": { "type": "string" } },
+    "truncated": { "type": "boolean" }
+  }
+}

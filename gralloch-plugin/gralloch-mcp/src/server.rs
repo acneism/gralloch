@@ -38,6 +38,14 @@ pub struct DeobfuscateParams {
 }
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+pub struct DynamicImportParams {
+    #[schemars(description = "Path to the case directory previously created by case_new.")]
+    pub case_dir: String,
+    #[schemars(description = "Path to the behavioral trace JSON produced INSIDE THE VM (e.g. by run-frida.py) and copied back to the host. This tool only parses it; it never executes the sample.")]
+    pub trace_path: String,
+}
+
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
 pub struct YaraScanParams {
     #[schemars(description = "Path to the case directory previously created by case_new.")]
     pub case_dir: String,
@@ -119,6 +127,21 @@ impl Gralloch {
             Ok(r) => Ok(CallToolResult::success(vec![ContentBlock::text(r.summary)])),
             Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
                 "deobfuscate failed: {e:#}"
+            ))])),
+        }
+    }
+
+    #[tool(
+        description = "Ingest a behavioral trace produced INSIDE THE VM (e.g. by scripts/run-frida.py) and normalize it into artifacts/dynamic.json: events by category, IOCs (network/files/registry/processes/modules), process-injection and anti-analysis flags. This tool ONLY parses the trace file; it never executes the sample. Dynamic execution is a VM task. All trace content is untrusted."
+    )]
+    async fn dynamic_import(
+        &self,
+        Parameters(p): Parameters<DynamicImportParams>,
+    ) -> Result<CallToolResult, rmcp::ErrorData> {
+        match crate::dynamic::dynamic_import(&p.case_dir, &p.trace_path) {
+            Ok(r) => Ok(CallToolResult::success(vec![ContentBlock::text(r.summary)])),
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
+                "dynamic_import failed: {e:#}"
             ))])),
         }
     }
