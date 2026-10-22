@@ -10,6 +10,7 @@ tools, not a new analysis engine.
 - **Plugin:** [`gralloch-plugin/`](gralloch-plugin/) — manifest, MCP server, skills, commands, hooks
 - **Marketplace:** `.claude-plugin/marketplace.json` (repo root is an installable marketplace)
 - **Test data:** [`testdata/`](testdata/) — safe corpus tooling + a `pefile` cross-check
+- **Commands:** [`docs/README.md`](docs/README.md) — every slash command, incl. one-shot `/gralloch <sample>`
 
 ## Quick start
 
