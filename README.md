@@ -11,7 +11,48 @@ tools, not a new analysis engine.
 - **Test data:** [`testdata/`](testdata/) — safe corpus tooling + a `pefile` cross-check
 - **Commands:** [`docs/README.md`](docs/README.md) — every slash command, incl. one-shot `/gralloch <sample>`
 
-## Quick start
+## Prerequisites
+
+**Host:** Windows + [Claude Code](https://code.claude.com). Analysis stays on the
+host; executing a sample is a VM task (see Safety).
+
+**To build the MCP server (required):**
+
+- A Rust toolchain via [rustup](https://rustup.rs) (built & verified with `rustc 1.99.1`).
+- A C linker — either of:
+  - **MSVC** — Visual Studio Build Tools, "Desktop development with C++"
+    (target `x86_64-pc-windows-msvc`); or
+  - **GNU (no admin)** — MinGW-w64 `gcc` on `PATH` (e.g. WinLibs), then
+    `rustup default stable-x86_64-pc-windows-gnu`.
+
+  The default build is pure Rust. The optional `yara` feature compiles yara-x,
+  which pulls wasmtime + a small C dependency built by the linker above.
+
+**Optional external tools** — each enables one stage; a stage whose tool is
+absent is skipped, never fatal:
+
+| Tool | Enables | Notes |
+|---|---|---|
+| capa standalone `capa.exe` | `/capa` | [capa releases](https://github.com/mandiant/capa/releases); bundles rules+signatures. Verified vs 10.0.0. |
+| `upx` | `/unpack` | [upx releases](https://github.com/upx/upx/releases). Verified vs 5.2.1. |
+| Ghidra | `/static` | set `GHIDRA_INSTALL_DIR` (or the plugin's config). |
+| Windows analysis VM + Frida | `/dynamics` | VM-only, user-initiated; snapshot active, network off/faked. |
+
+YARA needs no external tool — baseline rules ship in the plugin and run in the
+`yara`-feature build.
+
+## 1. Build the server
+
+```powershell
+cd gralloch-plugin\gralloch-mcp
+.\build-windows.ps1          # default build  -> ..\bin\gralloch-mcp.exe
+.\build-windows.ps1 -Yara    # also compile the YARA engine (enables /yara)
+```
+
+The one-shot `/gralloch` pipeline and `/yara` expect the `-Yara` build. The exe
+lands in `gralloch-plugin/bin/`, where `.mcp.json` points.
+
+## 2. Install the plugin
 
 ```
 # in Claude Code
@@ -19,13 +60,35 @@ tools, not a new analysis engine.
 /plugin install gralloch@gralloch-marketplace
 ```
 
-```powershell
-# build the native server (needs rustup + MSVC C++ Build Tools)
-cd gralloch-plugin\gralloch-mcp
-.\build-windows.ps1
+The `gralloch` MCP server starts automatically once `bin/gralloch-mcp.exe` exists.
+
+## 3. Configure (once)
+
+Set via `/config`: **Cases root** (a working directory outside the plugin) and,
+optionally, **capa executable**, **upx executable**, **Ghidra install dir**.
+Details in [`docs/README.md`](docs/README.md#configuration).
+
+## 4. Run
+
+One shot — runs the automatic host stages (case → triage → unpack? → capa →
+yara → deobfuscate → report):
+
+```
+/gralloch C:\path\to\sample.exe --profile malware
 ```
 
-Then: `/case-new`, `/triage`, `/static`. See `gralloch-plugin/README.md`.
+Then the stages that need external tooling or the VM, when you have them:
+
+```
+/static   <case-dir>            # Ghidra headless export (needs Ghidra)
+/dynamics <case-dir>            # Frida trace, inside the VM, on your command
+/verify   <case-dir>            # promote hypotheses that have evidence
+/gralloch --report <case-dir>   # rebuild report.md with everything folded in
+```
+
+Run a single stage directly — `/gralloch --verify <case-dir>`, or any of
+`/case-new`, `/triage`, `/capa`, `/yara`, `/unpack`, `/deobfuscate`, `/report`.
+All commands are documented in [`docs/README.md`](docs/README.md).
 
 ## Status
 
