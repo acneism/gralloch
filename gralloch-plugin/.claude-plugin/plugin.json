@@ -12,5 +12,27 @@
     "pe",
     "triage",
     "mcp"
-  ]
+  ],
+  "userConfig": {
+    "cases_root": {
+      "type": "directory",
+      "title": "Cases root",
+      "description": "Directory for analysis cases, OUTSIDE the plugin. Each case gets its own subfolder. Used as the default when a tool is not given an explicit cases root."
+    },
+    "capa_exe": {
+      "type": "file",
+      "title": "capa executable",
+      "description": "Path to the standalone capa.exe (bundles rules + signatures). Enables capa enrichment (/capa). Leave empty to use capa on PATH."
+    },
+    "upx_exe": {
+      "type": "file",
+      "title": "upx executable",
+      "description": "Path to upx.exe. Enables static UPX unpacking (/unpack). Leave empty to use upx on PATH."
+    },
+    "ghidra_install_dir": {
+      "type": "directory",
+      "title": "Ghidra install dir",
+      "description": "Ghidra installation directory (GHIDRA_INSTALL_DIR). Enables headless static export (/static)."
+    }
+  }
 }

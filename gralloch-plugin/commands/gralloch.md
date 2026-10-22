@@ -17,14 +17,17 @@ If no case-dir is given to a flag, use the most recently worked case.
 
 ## Full automatic pipeline (host-safe stages only)
 
-Resolve `cases_root` from `--cases-root`, else the plugin's userConfig, else a
-default `./cases` **outside the plugin**. Resolve `profile` from `--profile`,
-else `understand`. For `malware`, follow `gralloch-isolation` and confirm each
-step with the user. Run the stages in order, and **skip a stage gracefully (note
-it and continue) if its external tool is absent** — never fail the whole run:
+`cases_root` comes from `--cases-root` if given, otherwise from the plugin's
+configured **Cases root** (`case_new` falls back to it automatically — omit the
+arg). Resolve `profile` from `--profile`, else `understand`. For `malware`,
+follow `gralloch-isolation` and confirm each step with the user. Run the stages
+in order, and **skip a stage gracefully (note it and continue) if its external
+tool is absent** — never fail the whole run:
 
-1. **Stage 0 — case_new**: `case_new(sample_path, cases_root, profile)`. Keep the
-   returned `case_dir`.
+1. **Stage 0 — case_new**: `case_new(sample_path, profile)` (add `cases_root`
+   only if `--cases-root` was given). Keep the returned `case_dir`. If it errors
+   that no cases root is set, tell the user to configure **Cases root** via
+   `/config` (or pass `--cases-root`).
 2. **Stage 1 — triage**: `triage(case_dir)`. Note `route` (unpack | dotnet | static).
 3. **Stage 2 — unpack** (only if `route == unpack`): run
    `${CLAUDE_PLUGIN_ROOT}/scripts/run-unpack.ps1 -CaseDir <case_dir>` via

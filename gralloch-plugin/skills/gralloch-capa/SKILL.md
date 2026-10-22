@@ -18,7 +18,7 @@ The wrapper reads `case.json`, runs capa on the stored sample, and writes the ra
 report to `artifacts/capa.json`:
 
 ```
-powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/scripts/run-capa.ps1" -CaseDir "<case dir>"
+powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/scripts/run-capa.ps1" -CaseDir "<case dir>" -CapaExe "${user_config.capa_exe}"
 ```
 
 This can take from seconds to a few minutes (vivisect disassembly), not a hang.

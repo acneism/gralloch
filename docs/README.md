@@ -43,6 +43,18 @@ manual runs, and for the stages that cannot be automated on the host.
 - **Stage 6 writeback** (confirmed names/types into the Ghidra database) goes
   through a Ghidra MCP with a single writer; gralloch does not write Ghidra.
 
+## Configuration
+
+Set these once via `/config` (plugin settings) instead of passing paths every
+time — they are declared as the plugin's `userConfig`:
+
+| Setting | Used by | Effect |
+|---|---|---|
+| **Cases root** | `case_new` (`GRALLOCH_CASES_ROOT`) | Default directory for cases, outside the plugin. `/gralloch` and `case_new` use it when no `cases_root` is passed. |
+| **capa executable** | `/capa` | Path to the standalone `capa.exe`; empty → `capa` on PATH. |
+| **upx executable** | `/unpack` | Path to `upx.exe`; empty → `upx` on PATH. |
+| **Ghidra install dir** | `/static` | `GHIDRA_INSTALL_DIR` for headless export. |
+
 ## Typical flow
 
 ```

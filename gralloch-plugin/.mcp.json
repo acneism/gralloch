@@ -4,7 +4,8 @@
       "command": "${CLAUDE_PLUGIN_ROOT}/bin/gralloch-mcp.exe",
       "args": [],
       "env": {
-        "RUST_LOG": "info"
+        "RUST_LOG": "info",
+        "GRALLOCH_CASES_ROOT": "${user_config.cases_root}"
       }
     }
   }

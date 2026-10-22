@@ -17,7 +17,7 @@ Run the wrapper (it reads `case.json`, imports the stored sample, auto-analyzes,
 and writes `artifacts/ghidra/ghidra_export.json`):
 
 ```
-powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/scripts/run-ghidra-headless.ps1" -CaseDir "<case dir>"
+powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/scripts/run-ghidra-headless.ps1" -CaseDir "<case dir>" -GhidraDir "${user_config.ghidra_install_dir}"
 ```
 
 This can take minutes to tens of minutes on a large binary; it is a long-running

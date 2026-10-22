@@ -23,7 +23,7 @@ upx is available (`upx` on PATH or `$env:UPX_EXE`).
 ## Run the static unpacker
 
 ```
-powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/scripts/run-unpack.ps1" -CaseDir "<case dir>"
+powershell -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/scripts/run-unpack.ps1" -CaseDir "<case dir>" -UpxExe "${user_config.upx_exe}"
 ```
 
 It writes `artifacts/unpack.json` and, on success, an unpacked image under

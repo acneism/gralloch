@@ -8,7 +8,8 @@ use rmcp::{schemars, tool, tool_handler, tool_router, ServerHandler};
 pub struct CaseNewParams {
     #[schemars(description = "Absolute path to the sample file to import. It is read once and never executed.")]
     pub sample_path: String,
-    #[schemars(description = "Root directory for cases, OUTSIDE the plugin (e.g. a workspace folder). Each case gets its own subfolder.")]
+    #[serde(default)]
+    #[schemars(description = "Root directory for cases, OUTSIDE the plugin. If omitted/empty, falls back to the GRALLOCH_CASES_ROOT env var (the plugin's configured Cases root).")]
     pub cases_root: String,
     #[serde(default = "default_profile")]
     #[schemars(description = "Analysis profile: understand | malware | vuln | ctf. Defaults to understand.")]
@@ -90,7 +91,18 @@ impl Gralloch {
         &self,
         Parameters(p): Parameters<CaseNewParams>,
     ) -> Result<CallToolResult, rmcp::ErrorData> {
-        match crate::casedir::case_new(&p.sample_path, &p.cases_root, &p.profile) {
+        // cases_root: explicit param, else the configured GRALLOCH_CASES_ROOT.
+        let cases_root = if p.cases_root.trim().is_empty() {
+            std::env::var("GRALLOCH_CASES_ROOT").unwrap_or_default()
+        } else {
+            p.cases_root.clone()
+        };
+        if cases_root.trim().is_empty() {
+            return Ok(CallToolResult::error(vec![ContentBlock::text(
+                "case_new failed: no cases_root given and GRALLOCH_CASES_ROOT is not set (configure the plugin's \"Cases root\" or pass cases_root).".to_string(),
+            )]));
+        }
+        match crate::casedir::case_new(&p.sample_path, &cases_root, &p.profile) {
             Ok(r) => Ok(CallToolResult::success(vec![ContentBlock::text(r.summary)])),
             Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
                 "case_new failed: {e:#}"
