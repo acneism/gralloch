@@ -292,8 +292,9 @@ fn analyze(bytes: &[u8], stored_sample: &str, sha256: &str) -> Result<TriageRepo
     // Heuristic packer detection.
     let packer = detect_packer(&sections, function_count, entry_in_writable, &overlay);
 
-    // Route recommendation.
-    let route = if packer.detected {
+    // Route recommendation. Only medium/high packer confidence routes to unpack;
+    // weak (low) indicators like an overlay alone proceed to static analysis.
+    let route = if packer.detected && packer.confidence != "low" {
         RouteInfo {
             recommended: "unpack".into(),
             reason: "packing/obfuscation indicators present".into(),
@@ -303,6 +304,12 @@ fn analyze(bytes: &[u8], stored_sample: &str, sha256: &str) -> Result<TriageRepo
         RouteInfo {
             recommended: "dotnet".into(),
             reason: "managed .NET assembly; use an IL decompiler (ILSpy), not Ghidra".into(),
+            next_stage: 3,
+        }
+    } else if packer.detected {
+        RouteInfo {
+            recommended: "static".into(),
+            reason: "only weak packer indicators (e.g. overlay); proceed to headless static analysis".into(),
             next_stage: 3,
         }
     } else {
@@ -402,9 +409,15 @@ fn detect_packer(
     }
 
     let high_entropy = indicators.iter().any(|i| i.starts_with("high-entropy"));
-    let few_imports = function_count < 6;
     let detected = !indicators.is_empty();
-    let confidence = if named || (high_entropy && few_imports) {
+    // Strong packing signals justify a static-unpack attempt. An overlay or a
+    // low import count on their own are weak and common in benign binaries
+    // (e.g. installers, statically-linked exes), so they stay "low" and do NOT
+    // route to unpack — otherwise unpack -> re-triage -> unpack would loop.
+    let strong = named || high_entropy || entry_in_writable;
+    let confidence = if named && high_entropy {
+        "high"
+    } else if strong {
         "medium"
     } else if detected {
         "low"
@@ -513,5 +526,34 @@ mod tests {
     fn non_pe_errors() {
         let err = analyze(b"not a binary at all", "sample/x.bin", "0".repeat(64).as_str());
         assert!(err.is_err());
+    }
+
+    fn sec(name: &str, entropy: f64, raw: u32) -> SectionInfo {
+        SectionInfo {
+            name: name.into(),
+            virtual_size: 0,
+            raw_size: raw,
+            entropy,
+            characteristics: "0x0".into(),
+            flags: vec![],
+        }
+    }
+
+    #[test]
+    fn overlay_only_is_low_confidence() {
+        let secs = vec![sec(".text", 5.0, 1000)];
+        let overlay = OverlayInfo { present: true, offset: 1000, size: 5000 };
+        let p = detect_packer(&secs, 20, false, &overlay);
+        assert!(p.detected, "an overlay is an indicator");
+        assert_eq!(p.confidence, "low", "overlay alone must not force unpack");
+    }
+
+    #[test]
+    fn upx_like_is_high_confidence() {
+        let secs = vec![sec("UPX0", 0.0, 0), sec("UPX1", 7.68, 2000)];
+        let overlay = OverlayInfo { present: false, offset: 0, size: 0 };
+        let p = detect_packer(&secs, 10, true, &overlay);
+        assert!(p.detected);
+        assert_eq!(p.confidence, "high", "named UPX section + high entropy");
     }
 }

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gralloch/schemas/unpack.schema.json",
+  "title": "gralloch unpack result",
+  "description": "Output of scripts/run-unpack.ps1 (stage 2, static unpacking). On success the unpacked image is stored read-only and non-executable under artifacts/unpacked/.",
+  "type": "object",
+  "required": ["schema_version", "generated_by", "input", "success", "method", "next"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "generated_by": { "type": "string" },
+    "input": {
+      "type": "object",
+      "required": ["stored_sample", "sha256", "size"],
+      "properties": {
+        "stored_sample": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "size": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "success": { "type": "boolean" },
+    "method": { "type": "string", "enum": ["upx-static", "none"] },
+    "packer": { "type": "string" },
+    "reason": { "type": "string" },
+    "note": { "type": "string" },
+    "output": {
+      "type": "object",
+      "required": ["path", "sha256", "size"],
+      "properties": {
+        "path": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "size": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "next": { "type": "string" }
+  }
+}

@@ -34,9 +34,10 @@ Then: `/case-new`, `/triage`, `/static`. See `gralloch-plugin/README.md`.
 | 0 | case creation (`case_new`) | built & verified end-to-end |
 | 1 | triage (`triage`) | built & verified; cross-checked vs `pefile` |
 | 1 | capa enrichment (`capa_import` + `/capa`) | built & verified vs capa 10.0.0 |
+| 2 | static unpack (`/unpack`, UPX) | built & verified vs upx 5.2.1 (round-trip + re-triage) |
 | 3 | Ghidra headless export (`/static`) | scaffolded; needs a Ghidra install |
 | — | isolation hook, skills, commands, schemas, marketplace | done and validated |
-| 2,4,5,6,7 | unpack / deobf / dynamics / verify / output | per spec, later |
+| 4,5,6,7 | deobf / dynamics / verify / output | per spec, later |
 
 The Rust server compiles (`rustc 1.99.1`, `x86_64-pc-windows-gnu`) and is
 verified end-to-end: `cargo test`, an MCP stdio handshake, and `case_new` →
