@@ -15,7 +15,8 @@ re-lab-plugin/
 ├── commands/                    # /case-new, /triage
 ├── skills/                      # relab-isolation, relab-triage
 ├── hooks/                       # PreToolUse isolation tripwire (guard.ps1)
-├── schemas/                     # JSON Schema for case.json and triage.json
+├── scripts/                     # external-tool orchestration (Ghidra headless export)
+├── schemas/                     # JSON Schema for case.json, triage.json, ghidra-export.json
 ├── bin/                         # relab-mcp.exe goes here (built separately)
 └── relab-mcp/                   # Rust source for the MCP server
 ```
@@ -71,4 +72,5 @@ See `skills/relab-isolation/SKILL.md` and `tz-re-pipeline.md` section 4.
 | Plugin scaffold, hook, skills, commands, schemas | done, validated |
 | `guard.ps1` isolation hook | done, unit-tested |
 | `relab-mcp` (`case_new`, `triage`) | source complete; needs `cargo build` to produce the exe |
-| capa / Ghidra headless / YARA rules / unpack / dynamics | later iterations |
+| Stage 3 Ghidra headless export (`scripts/`, `/static`) | scaffolded; needs a Ghidra install to run |
+| capa / YARA rules / unpack / dynamics / writeback | later iterations |
