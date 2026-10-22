@@ -8,7 +8,7 @@ use crate::casedir;
 
 const SCHEMA_VERSION: &str = "0.1.0";
 const MIN_LEN: usize = 6;
-const MAX_SCAN: usize = 1 << 20;
+const MAX_SCAN: usize = 16 << 20;
 const XOR_SCAN: usize = 256 * 1024;
 const MAX_PLAIN_SAMPLES: usize = 100;
 const MAX_UTF16_SAMPLES: usize = 50;
@@ -96,8 +96,8 @@ pub fn deobfuscate(case_dir: &str) -> Result<DeobfResult> {
     let window = bytes.len().min(MAX_SCAN);
     let region = &bytes[..window];
 
-    let ascii = ascii_strings(&bytes, MIN_LEN);
-    let utf16 = utf16le_strings(&bytes, MIN_LEN);
+    let ascii = ascii_strings(region, MIN_LEN);
+    let utf16 = utf16le_strings(region, MIN_LEN);
 
     let xregion = &region[..region.len().min(XOR_SCAN)];
     let baseline_hits = dict_hits(&lower_ascii(xregion));
