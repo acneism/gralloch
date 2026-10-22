@@ -46,6 +46,12 @@ pub struct DynamicImportParams {
 }
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+pub struct VerifyParams {
+    #[schemars(description = "Path to the case directory. It must contain hypotheses.json (format 7.4).")]
+    pub case_dir: String,
+}
+
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
 pub struct YaraScanParams {
     #[schemars(description = "Path to the case directory previously created by case_new.")]
     pub case_dir: String,
@@ -142,6 +148,21 @@ impl Gralloch {
             Ok(r) => Ok(CallToolResult::success(vec![ContentBlock::text(r.summary)])),
             Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
                 "dynamic_import failed: {e:#}"
+            ))])),
+        }
+    }
+
+    #[tool(
+        description = "Verify the case's hypothesis ledger (hypotheses.json, format 7.4): enforce that any 'confirmed' hypothesis has an 'evidence' reference to an artifact that exists in the case, flag invalid statuses / duplicate ids / missing fields, and list the hypotheses ready for writeback. Writes artifacts/verification.json. Reads JSON only; executes nothing. Statements/evidence are untrusted."
+    )]
+    async fn verify(
+        &self,
+        Parameters(p): Parameters<VerifyParams>,
+    ) -> Result<CallToolResult, rmcp::ErrorData> {
+        match crate::verify::verify(&p.case_dir) {
+            Ok(r) => Ok(CallToolResult::success(vec![ContentBlock::text(r.summary)])),
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
+                "verify failed: {e:#}"
             ))])),
         }
     }

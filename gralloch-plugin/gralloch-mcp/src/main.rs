@@ -16,6 +16,7 @@ mod dynamic;
 mod hashes;
 mod server;
 mod triage;
+mod verify;
 mod yara;
 
 use anyhow::Result;

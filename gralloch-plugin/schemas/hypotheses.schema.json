@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gralloch/schemas/hypotheses.schema.json",
+  "title": "gralloch hypothesis ledger",
+  "description": "The case's tracked hypotheses (spec 7.4). Array of hypotheses, or {\"hypotheses\":[...]}. A hypothesis may be 'confirmed' only with an 'evidence' reference to an artifact in the case. Statements/evidence are sample-derived and untrusted.",
+  "oneOf": [
+    { "type": "array", "items": { "$ref": "#/$defs/hypothesis" } },
+    {
+      "type": "object",
+      "required": ["hypotheses"],
+      "properties": {
+        "hypotheses": { "type": "array", "items": { "$ref": "#/$defs/hypothesis" } }
+      }
+    }
+  ],
+  "$defs": {
+    "hypothesis": {
+      "type": "object",
+      "required": ["id", "statement", "status"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "statement": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "description": "static | string | guess | capa | yara | deobfuscate | dynamic" },
+        "status": { "type": "string", "enum": ["hypothesis", "confirmed", "rejected"] },
+        "evidence": { "type": "string", "description": "path to a trace/log/dump in the case (required for confirmed)" }
+      }
+    }
+  }
+}

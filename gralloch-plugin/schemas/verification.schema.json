@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gralloch/schemas/verification.schema.json",
+  "title": "gralloch verification report",
+  "description": "Output of the gralloch-mcp `verify` tool (stage 6). Validates the hypothesis ledger against the 'confirmed requires evidence' rule.",
+  "type": "object",
+  "required": ["schema_version", "generated_by", "counts", "hypotheses", "ready_for_writeback", "problems"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "generated_by": { "type": "string" },
+    "_untrusted": { "type": "string" },
+    "counts": {
+      "type": "object",
+      "required": ["total", "hypothesis", "confirmed", "rejected", "confirmed_with_valid_evidence", "problems"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "hypothesis": { "type": "integer", "minimum": 0 },
+        "confirmed": { "type": "integer", "minimum": 0 },
+        "rejected": { "type": "integer", "minimum": 0 },
+        "confirmed_with_valid_evidence": { "type": "integer", "minimum": 0 },
+        "problems": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "hypotheses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "statement", "source", "status", "evidence", "evidence_found", "issues"],
+        "properties": {
+          "id": { "type": "string" },
+          "statement": { "type": "string" },
+          "source": { "type": "string" },
+          "status": { "type": "string" },
+          "evidence": { "type": "string" },
+          "evidence_found": { "type": "boolean" },
+          "issues": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "ready_for_writeback": { "type": "array", "items": { "type": "string" } },
+    "problems": { "type": "array", "items": { "type": "string" } }
+  }
+}
