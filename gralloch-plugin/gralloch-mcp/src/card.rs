@@ -9,6 +9,8 @@ use crate::callgraph::{capa_join, cats_for, parse_hex, NodeMeta};
 
 const SCHEMA_VERSION: &str = "0.1.0";
 const MAX_CALLS: usize = 100;
+const MAX_STRINGS_IN_CARD: usize = 50;
+const MAX_STRING_LEN: usize = 200;
 
 pub struct CardResult {
     pub summary: String,
@@ -128,6 +130,26 @@ fn build_card(export: &Value, capa: Option<&Value>, function: &str) -> Result<Va
         None => (cats_for(&callees, &meta), "name-keyword"),
     };
 
+    let want = parse_hex(&m.entry);
+    let strings: Vec<Value> = export
+        .get("strings")
+        .and_then(Value::as_array)
+        .map(|arr| {
+            arr.iter()
+                .filter(|s| {
+                    s.get("refs")
+                        .and_then(Value::as_array)
+                        .map(|rs| rs.iter().filter_map(Value::as_str).any(|r| want.is_some() && parse_hex(r) == want))
+                        .unwrap_or(false)
+                })
+                .filter_map(|s| s.get("value").and_then(Value::as_str))
+                .map(|v| Value::String(v.chars().take(MAX_STRING_LEN).collect()))
+                .take(MAX_STRINGS_IN_CARD)
+                .collect()
+        })
+        .unwrap_or_default();
+    let n_strings = strings.len();
+
     let fobj = funcs.iter().find(|f| {
         let e = f.get("entry").and_then(Value::as_str).unwrap_or("");
         let n = f.get("name").and_then(Value::as_str).unwrap_or("");
@@ -152,12 +174,14 @@ fn build_card(export: &Value, capa: Option<&Value>, function: &str) -> Result<Va
         },
         "calls": { "apis": apis, "internal": internal },
         "called_by": called_by,
+        "strings": strings,
         "capabilities": capabilities,
         "category_source": source,
         "counts": {
             "callees": callees.len(),
             "callers": callers.len(),
             "apis": apis.len(),
+            "strings": n_strings,
         },
         "analyst_note": "Facts only. Likely purpose, unknowns, and the next step are the analyst's to \
             add as a hypothesis (source: function_card), each citing these addresses. Do not promote to \
@@ -240,6 +264,24 @@ mod tests {
         let caps: Vec<&str> = card.get("capabilities").unwrap().as_array().unwrap()
             .iter().filter_map(Value::as_str).collect();
         assert!(caps.contains(&"host-interaction/file-system/read"));
+    }
+
+    #[test]
+    fn card_includes_only_strings_this_function_references() {
+        let export = json!({
+            "functions": [ {"name":"f","entry":"0x1000","size":32,"is_thunk":false,"is_external":false} ],
+            "xrefs": [],
+            "strings": [
+                {"addr":"0x5000","value":"http://evil/c2","refs":["0x1000"]},
+                {"addr":"0x5020","value":"used elsewhere","refs":["0x9999"]},
+                {"addr":"0x5040","value":"no refs at all"}
+            ]
+        });
+        let card = build_card(&export, None, "0x1000").unwrap();
+        let strs: Vec<String> = card.get("strings").and_then(Value::as_array).unwrap()
+            .iter().filter_map(Value::as_str).map(String::from).collect();
+        assert_eq!(strs, vec!["http://evil/c2"], "only strings referenced by this function's address");
+        assert_eq!(card.pointer("/counts/strings").unwrap().as_u64().unwrap(), 1);
     }
 
     #[test]

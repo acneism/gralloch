@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 public class ghidra_export extends GhidraScript {
 
     private static final int MAX_STRINGS = 20000;
+    private static final int MAX_STRING_REFS = 32;
     private static final int MAX_XREFS = 50000;
 
     @Override
@@ -88,6 +89,7 @@ public class ghidra_export extends GhidraScript {
         sb.append("  \"strings\": [");
         int n = 0;
         Listing listing = currentProgram.getListing();
+        ReferenceManager rm = currentProgram.getReferenceManager();
         for (Data d : listing.getDefinedData(true)) {
             if (n >= MAX_STRINGS) {
                 break;
@@ -101,7 +103,28 @@ public class ghidra_export extends GhidraScript {
                     }
                     sb.append("\n    {");
                     sb.append("\"addr\": ").append(js(addr(d.getAddress()))).append(", ");
-                    sb.append("\"value\": ").append(js(val.toString()));
+                    sb.append("\"value\": ").append(js(val.toString())).append(", ");
+                    sb.append("\"refs\": [");
+                    int r = 0;
+                    java.util.LinkedHashSet<String> seen = new java.util.LinkedHashSet<>();
+                    for (Reference ref : rm.getReferencesTo(d.getAddress())) {
+                        Function fn = currentProgram.getFunctionManager().getFunctionContaining(ref.getFromAddress());
+                        if (fn == null) {
+                            continue;
+                        }
+                        String fe = addr(fn.getEntryPoint());
+                        if (seen.add(fe)) {
+                            if (r > 0) {
+                                sb.append(", ");
+                            }
+                            sb.append(js(fe));
+                            r++;
+                            if (r >= MAX_STRING_REFS) {
+                                break;
+                            }
+                        }
+                    }
+                    sb.append("]");
                     sb.append("}");
                     n++;
                 }

@@ -24,6 +24,8 @@ The card is FACTS only:
 - `function` — name, entry, size, params, signature, thunk/external flags,
 - `calls.apis` / `calls.internal` — named API calls vs internal callees,
 - `called_by` — the function's callers,
+- `strings` — defined strings this function references (string xrefs resolved to
+  the function),
 - `capabilities` + `category_source` — capa capability namespaces matched in the
   function (`capa`), or a weak callee-name heuristic (`name-keyword`).
 
@@ -45,7 +47,7 @@ addresses. Never promote to `confirmed` without dynamic evidence (stage 5/6).
 - Facts come from the export's function-entry xrefs and capa's capability→address
   matches; a function with no capa hit simply has no `capabilities` — that is
   "unknown", not "benign".
-- Strings referenced by a function are not yet available (the export records
-  references to function entries, not to string addresses).
+- `strings` are the defined strings this function references; a function that
+  references none simply has an empty list ("none found", not "none exist").
 - `apis` is empty on statically-linked/stripped binaries (no named import
   thunks); rely on `capabilities` there.
