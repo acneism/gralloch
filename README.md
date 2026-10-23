@@ -150,6 +150,13 @@ $gralloch:gralloch --verify "C:\analysis\cases\<case>"
 $gralloch:gralloch --report "C:\analysis\cases\<case>"
 ```
 
+The same command supports `--case-new <sample>`, `--capa <case-dir>`,
+`--yara <case-dir>`, `--unpack <case-dir>`, and `--deobfuscate <case-dir>`.
+To import a trace already produced in the VM, use
+`--dynamics <case-dir> --trace <trace.json>`. Without `--trace`, the dynamics
+stage provides VM instructions and checks preconditions; it does not execute
+the sample on the host. Stage flags are mutually exclusive.
+
 `$gralloch:gralloch` is the installed plugin skill invocation in Codex
 (`plugin:skill` namespace), not a PowerShell command. Claude's
 `/gralloch` slash command belongs to Claude Code. You can also describe the
@@ -241,6 +248,9 @@ approval modes for malware analysis.
 
 - Installed command missing: check `codex plugin list --marketplace gralloch-codex`,
   ensure the plugin is enabled, and start a new local chat.
+- Installed MCP startup fails on Windows: rerun `scripts/install-codex.ps1`.
+  The installer resolves the executable path to Codex's installed cache rather
+  than relying on runtime expansion of a plugin-root placeholder.
 - Missing executable: build the server before running setup.
 - Missing connection: check project trust, absolute paths, and `/mcp`; restart
   the chat after configuration changes. No `${CLAUDE_PLUGIN_ROOT}` or Claude
@@ -249,6 +259,23 @@ approval modes for malware analysis.
 - Missing optional tools: install/configure them or let Codex skip those stages.
 - A cases root outside the checkout may require granting that folder access in
   your Codex environment before writing case data.
+
+### Validate an installed Codex plugin
+
+Run `python -m unittest discover -s tests -p test_codex_package.py` for packaging
+and installation-path regression tests. To test an installed copy through the
+actual Codex app-server, including native MCP startup and all eight tool
+contracts, run:
+
+```powershell
+python tests/check_codex_runtime.py --codex-home '<isolated Codex test profile>' --output '<test output outside this repo>' --sample 'C:\Windows\System32\whoami.exe'
+```
+
+Install the plugin into that test profile first. This check does not execute
+the PE or start a model turn. capa and dynamic-import inputs in this regression
+check are explicitly synthetic parser fixtures; external capa, Ghidra, UPX,
+and real VM tracing need separate integration checks. YARA is skipped with an
+explicit message if the installed server lacks that feature.
 
 Configuration follows the official OpenAI documentation for
 [MCP](https://developers.openai.com/codex/mcp),

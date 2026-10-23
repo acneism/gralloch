@@ -73,6 +73,32 @@ class PackageTests(unittest.TestCase):
         self.assertNotEqual(self.run_installer('-Yara').returncode, 0)
         self.assertFalse(self.package.exists())
 
+    def test_installer_binds_mcp_to_installed_cache(self):
+        installed = self.repo / 'installed cache with spaces'
+        # A local Codex stub isolates this regression test from user settings.
+        script = r'''
+function codex {
+    if ($args[1] -eq 'marketplace') { return }
+    $source = Join-Path 'REPO_PATH' '.codex-package/gralloch'
+    Copy-Item -LiteralPath $source -Destination 'INSTALLED_PATH' -Recurse
+    @{ pluginId = 'gralloch@gralloch-codex'; installedPath = 'INSTALLED_PATH' } | ConvertTo-Json
+}
+$global:LASTEXITCODE = 0
+& 'SCRIPT_PATH' -SkipBuild
+'''
+        for key, value in [('REPO_PATH', self.repo), ('INSTALLED_PATH', installed),
+                           ('SCRIPT_PATH', self.repo / 'scripts/install-codex.ps1')]:
+            script = script.replace(key, str(value).replace("'", "''"))
+        result = subprocess.run([SHELL, '-NoProfile', '-Command', script],
+                                capture_output=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        source_config = json.loads((self.package / '.mcp.codex.json').read_text())
+        installed_config = json.loads((installed / '.mcp.codex.json').read_text())
+        self.assertEqual(source_config, installed_config)
+        server = pathlib.Path(installed_config['mcpServers']['gralloch']['command'])
+        self.assertTrue(server.is_file())
+        self.assertTrue(server.is_relative_to(installed))
+
 
 if __name__ == '__main__':
     unittest.main()

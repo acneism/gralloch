@@ -3,7 +3,6 @@
     "gralloch": {
       "command": "${PLUGIN_ROOT}/gralloch-plugin/bin/gralloch-mcp.exe",
       "args": [],
-      "cwd": "${PLUGIN_ROOT}",
       "env": { "RUST_LOG": "info" }
     }
   }

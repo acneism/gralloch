@@ -62,7 +62,26 @@ if ($PackageOnly) { return }
 
 & codex plugin marketplace add $repoRoot
 if ($LASTEXITCODE -ne 0) { throw 'Codex marketplace registration failed.' }
-& codex plugin add 'gralloch@gralloch-codex'
+$installJson = & codex plugin add 'gralloch@gralloch-codex' --json
 if ($LASTEXITCODE -ne 0) { throw 'Codex plugin installation failed.' }
+$installation = ($installJson -join "`n") | ConvertFrom-Json
+$installedRoot = $installation.installedPath
+if ($installation.pluginId -ne 'gralloch@gralloch-codex' -or
+    -not $installedRoot -or -not [System.IO.Path]::IsPathRooted($installedRoot)) {
+    throw 'Codex returned an unexpected installation result.'
+}
+$installedServer = Join-Path $installedRoot 'gralloch-plugin\bin\gralloch-mcp.exe'
+if (-not (Test-Path -LiteralPath $installedServer -PathType Leaf)) {
+    throw "Installed MCP server is missing: $installedServer"
+}
+# Some Windows Codex builds do not expand PLUGIN_ROOT in MCP command/cwd.
+# Bind to the actual installed cache, not the source checkout. Keep the local
+# marketplace copy in sync so a refresh preserves the resolved configuration.
+$mcp = Get-Content -LiteralPath (Join-Path $packageRoot '.mcp.codex.json') -Raw | ConvertFrom-Json
+$mcp.mcpServers.gralloch.command = $installedServer
+$mcpJson = $mcp | ConvertTo-Json -Depth 10
+foreach ($root in @($packageRoot, $installedRoot)) {
+    [System.IO.File]::WriteAllText((Join-Path $root '.mcp.codex.json'), $mcpJson + "`n", (New-Object System.Text.UTF8Encoding($false)))
+}
 Write-Host 'Installed. Start a new local Codex chat and run:'
 Write-Host '$gralloch:gralloch "C:\samples\app.exe" --profile understand --cases-root "C:\analysis\cases"'

@@ -19,3 +19,6 @@ changes, and test the `yara` feature when changing its engine. Check changed
 PowerShell scripts for syntax and exercise their relevant behavior. Do not commit
 server binaries, case artifacts, or machine-specific `.codex/config.toml`.
 For packaging changes, run `python -m unittest discover -s tests -p test_codex_package.py`.
+For native startup changes, also run `tests/check_codex_runtime.py` against an
+isolated installed profile; direct execution of the server cannot validate
+Codex's launch configuration or plugin-root expansion.

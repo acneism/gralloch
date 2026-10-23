@@ -1,6 +1,6 @@
 {
   "name": "gralloch",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Analyze Windows PE files with the $gralloch:gralloch skill and a bundled native MCP server.",
   "author": { "name": "gralloch maintainers" },
   "repository": "https://github.com/acneism/gralloch",

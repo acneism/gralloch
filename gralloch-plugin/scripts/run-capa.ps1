@@ -45,10 +45,16 @@ if ($RulesDir) { $argList += @('-r', $RulesDir) }
 $argList += @($sample)
 
 Write-Host "capa: analyzing $sample (static disassembly, not executed)..." -ForegroundColor Cyan
-$p = Start-Process -FilePath $file -ArgumentList $argList -NoNewWindow -PassThru `
+# Start-Process joins ArgumentList into a single Windows command line, so it
+# does not preserve array argument boundaries when paths contain spaces.
+$quotedArgs = @($argList | ForEach-Object {
+    '"' + (($_ -replace '(\\*)"', '$1$1\"') -replace '(\\+)$', '$1$1') + '"'
+})
+$p = Start-Process -FilePath $file -ArgumentList $quotedArgs -NoNewWindow -PassThru `
     -RedirectStandardOutput $outJson -RedirectStandardError $errLog
 if (-not $p.WaitForExit($TimeoutSec * 1000)) {
-    try { $p.Kill() } catch {}
+    # Standalone capa can launch a worker child. Stop the entire analyzer tree.
+    try { & "$env:SystemRoot\System32\taskkill.exe" /PID $p.Id /T /F 2>&1 | Out-Null } catch {}
     throw "capa timed out after ${TimeoutSec}s"
 }
 

@@ -20,12 +20,27 @@ uses `$gralloch`. For example, the user sends:
 $gralloch:gralloch "C:\path\sample.exe" --profile understand --cases-root "C:\analysis\cases"
 ```
 
-Treat the supplied path as
-the sample and run the full pipeline below. Recognize `--profile` (default
-`understand`), `--cases-root`, `--triage` (case creation and triage only),
-`--static <case-dir>` (Ghidra only), `--verify <case-dir>`, and
-`--report <case-dir>` (rebuild report only). Do not run other stages when a
-single-stage flag is requested. If no sample or case path is given, ask for it.
+With no stage flag, treat the supplied path as the sample and run the full
+pipeline below. `--profile` defaults to `understand`; `--cases-root` supplies
+the working directory. Support these single-stage commands:
+
+| Flag | Action |
+|---|---|
+| `--case-new <sample>` | `case_new` only |
+| `--triage` with a sample path | `case_new`, then `triage` only |
+| `--capa <case-dir>` | `run-capa.ps1`, then `capa_import` only on success |
+| `--yara <case-dir>` | `yara_scan` only |
+| `--unpack <case-dir>` | `run-unpack.ps1` only; show the output and next route |
+| `--static <case-dir>` | Ghidra wrapper/export only |
+| `--deobfuscate <case-dir>` | `deobfuscate` only |
+| `--dynamics <case-dir> --trace <trace.json>` | `dynamic_import` only; do not run the sample |
+| `--verify <case-dir>` | `verify` only |
+| `--report <case-dir>` | `report` only |
+
+Without `--trace`, `--dynamics` provides the VM procedure and checks its
+preconditions; it never starts tracing on the host. Missing paths, unknown
+flags, and conflicting stage flags require clarification, not a fallback to
+the full pipeline. Do not run other stages for a single-stage request.
 
 ## Isolation
 
@@ -68,7 +83,9 @@ For a requested single stage, perform only that stage. For full analysis:
 3. If capa is available, run `<plugin>/scripts/run-capa.ps1 -CaseDir <case>`,
    then `capa_import(case_dir)`. Use `CAPA_EXE` or `-CapaExe` when configured.
 4. `yara_scan(case_dir)`; skip if the server was built without `yara`.
-5. `deobfuscate(case_dir)`, then `report(case_dir)`. Present
+5. `deobfuscate(case_dir)`. If `hypotheses.json` exists, run `verify` before
+   `report` so findings are current. Do not invent a ledger or confirmed findings
+   just to satisfy verification. Then `report(case_dir)`. Present
    `artifacts/report.md` and identify skipped stages and their reasons.
 
 Skip missing optional tools; report actual analysis errors without presenting a
