@@ -33,6 +33,7 @@ the working directory. Support these single-stage commands:
 | `--unpack <case-dir>` | `run-unpack.ps1` only; show the output and next route |
 | `--static <case-dir>` | Ghidra wrapper/export only |
 | `--callgraph <case-dir>` | `call_graph` only (needs the Ghidra export) |
+| `--card <case-dir> <function>` | `function_card` only (facts card for one function) |
 | `--deobfuscate <case-dir>` | `deobfuscate` only |
 | `--dynamics <case-dir> --trace <trace.json>` | `dynamic_import` only; do not run the sample |
 | `--verify <case-dir>` | `verify` only |
@@ -103,6 +104,9 @@ Read only the guide relevant to the requested stage:
 - [Call graph](../../../gralloch-plugin/skills/gralloch-callgraph/SKILL.md):
   `call_graph(case_dir)` turns the Ghidra export into caller/callee edges,
   behavior categories, and entry points.
+- [Function card](../../../gralloch-plugin/skills/gralloch-card/SKILL.md):
+  `function_card(case_dir, function)` returns a facts-only card for one function
+  (calls, callers, capa capabilities) to turn into a hypothesis.
 - [Dynamics](../../../gralloch-plugin/skills/gralloch-dynamics/SKILL.md): VM
   tracing only; `dynamic_import` safely imports a returned trace on the host.
 - [Verification](../../../gralloch-plugin/skills/gralloch-verify/SKILL.md):

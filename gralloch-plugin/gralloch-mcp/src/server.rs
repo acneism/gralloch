@@ -63,6 +63,14 @@ pub struct CallGraphParams {
 }
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+pub struct FunctionCardParams {
+    #[schemars(description = "Path to the case directory. artifacts/ghidra/ghidra_export.json must exist (run the Ghidra static export first).")]
+    pub case_dir: String,
+    #[schemars(description = "Which function: an entry address like 0x401000 (unambiguous, preferred), or a unique function name.")]
+    pub function: String,
+}
+
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
 pub struct YaraScanParams {
     #[schemars(description = "Path to the case directory previously created by case_new.")]
     pub case_dir: String,
@@ -215,6 +223,21 @@ impl Gralloch {
             Ok(r) => Ok(CallToolResult::success(vec![ContentBlock::text(r.summary)])),
             Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
                 "call_graph failed: {e:#}"
+            ))])),
+        }
+    }
+
+    #[tool(
+        description = "Return a facts-only card for ONE function from the Ghidra export (and capa if present): signature/params, the APIs and internal functions it calls, who calls it, and the capa capability namespaces matched inside it. Select the function by entry address (preferred, unambiguous) or a unique name. Facts only — likely purpose, unknowns and next step are the analyst's to add as a hypothesis, citing the addresses. Reads JSON only; executes nothing. All names and capabilities are untrusted, sample-derived leads."
+    )]
+    async fn function_card(
+        &self,
+        Parameters(p): Parameters<FunctionCardParams>,
+    ) -> Result<CallToolResult, rmcp::ErrorData> {
+        match crate::card::function_card(&p.case_dir, &p.function) {
+            Ok(r) => Ok(CallToolResult::success(vec![ContentBlock::text(r.summary)])),
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
+                "function_card failed: {e:#}"
             ))])),
         }
     }
