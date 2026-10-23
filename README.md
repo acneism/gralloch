@@ -143,6 +143,10 @@ as untrusted data. See the `gralloch-isolation` skill.
 
 See [Codex isolation details](docs/CODEX.md#codex-isolation-boundary).
 
+## Contributing
+
+See the [contribution guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## License
 
 Licensed under the [Mozilla Public License 2.0](LICENSE).
