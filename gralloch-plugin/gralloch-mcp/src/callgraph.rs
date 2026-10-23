@@ -56,6 +56,7 @@ const CATEGORIES: &[(&str, &[&str])] = &[
 ];
 
 struct NodeMeta {
+    name: String,
     entry: String,
     size: u64,
     is_thunk: bool,
@@ -101,7 +102,7 @@ pub fn call_graph(case_dir: &str) -> Result<CallGraphResult> {
     }
     let leads = if cats.is_empty() { "none".to_string() } else { cats.join(" ") };
     let summary = format!(
-        "call_graph: {nc} functions, {ec} edges. Behavior leads — {leads}. {ep} candidate entry point(s).\nGraph: {path}",
+        "call_graph: {nc} nodes, {ec} edges. Behavior leads — {leads}. {ep} candidate entry point(s).\nGraph: {path}",
         path = out_path.display(),
     );
     Ok(CallGraphResult { summary })
@@ -112,15 +113,22 @@ fn build(export: &Value) -> Value {
     let xrefs = export.get("xrefs").and_then(Value::as_array).cloned().unwrap_or_default();
 
     let mut meta: BTreeMap<String, NodeMeta> = BTreeMap::new();
+    let mut name_entry: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for f in &funcs {
-        let name = f.get("name").and_then(Value::as_str).unwrap_or("");
+        let name = f.get("name").and_then(Value::as_str).unwrap_or("").to_string();
         if name.is_empty() {
             continue;
         }
+        let entry = f.get("entry").and_then(Value::as_str).unwrap_or("").to_string();
+        let key = if entry.is_empty() { name.clone() } else { entry.clone() };
+        if !entry.is_empty() {
+            name_entry.entry(name.clone()).or_default().push(entry.clone());
+        }
         meta.insert(
-            name.to_string(),
+            key,
             NodeMeta {
-                entry: f.get("entry").and_then(Value::as_str).unwrap_or("").to_string(),
+                name,
+                entry,
                 size: f.get("size").and_then(Value::as_u64).unwrap_or(0),
                 is_thunk: f.get("is_thunk").and_then(Value::as_bool).unwrap_or(false),
                 is_external: f.get("is_external").and_then(Value::as_bool).unwrap_or(false),
@@ -128,39 +136,65 @@ fn build(export: &Value) -> Value {
         );
     }
 
+    let resolve = |name: &str, entry: Option<&str>| -> String {
+        if let Some(e) = entry {
+            if !e.is_empty() {
+                return e.to_string();
+            }
+        }
+        if let Some(es) = name_entry.get(name) {
+            if es.len() == 1 {
+                return es[0].clone();
+            }
+        }
+        name.to_string()
+    };
+
     let mut callees: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let mut callers: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let mut edge_type: BTreeMap<(String, String), String> = BTreeMap::new();
     for x in &xrefs {
-        let to = x.get("to_func").and_then(Value::as_str).unwrap_or("");
-        let from = x.get("from_func").and_then(Value::as_str).unwrap_or("");
-        if to.is_empty() || from.is_empty() {
+        let to_name = x.get("to_func").and_then(Value::as_str).unwrap_or("");
+        let from_name = x.get("from_func").and_then(Value::as_str).unwrap_or("");
+        if to_name.is_empty() || from_name.is_empty() {
             continue;
         }
-        callees.entry(from.to_string()).or_default().insert(to.to_string());
-        callers.entry(to.to_string()).or_default().insert(from.to_string());
+        let to = resolve(to_name, x.get("to_entry").and_then(Value::as_str));
+        let from = resolve(from_name, x.get("from_entry").and_then(Value::as_str));
+        callees.entry(from.clone()).or_default().insert(to.clone());
+        callers.entry(to.clone()).or_default().insert(from.clone());
         edge_type
-            .entry((from.to_string(), to.to_string()))
+            .entry((from, to))
             .or_insert_with(|| x.get("type").and_then(Value::as_str).unwrap_or("").to_string());
     }
 
     let empty: BTreeSet<String> = BTreeSet::new();
+    let disp = |key: &str| -> (String, String) {
+        match meta.get(key) {
+            Some(m) => (m.name.clone(), m.entry.clone()),
+            None => (
+                key.to_string(),
+                if key.starts_with("0x") { key.to_string() } else { String::new() },
+            ),
+        }
+    };
 
-    let mut names: BTreeSet<String> = meta.keys().cloned().collect();
+    let mut keys: BTreeSet<String> = meta.keys().cloned().collect();
     for (f, t) in edge_type.keys() {
-        names.insert(f.clone());
-        names.insert(t.clone());
+        keys.insert(f.clone());
+        keys.insert(t.clone());
     }
 
     let mut nodes: Vec<(Value, usize)> = Vec::new();
-    for name in &names {
-        let m = meta.get(name);
-        let ind = callers.get(name).map(BTreeSet::len).unwrap_or(0);
-        let outd = callees.get(name).map(BTreeSet::len).unwrap_or(0);
-        let cats = cats_for(callees.get(name).unwrap_or(&empty));
+    for key in &keys {
+        let (name, entry) = disp(key);
+        let m = meta.get(key);
+        let ind = callers.get(key).map(BTreeSet::len).unwrap_or(0);
+        let outd = callees.get(key).map(BTreeSet::len).unwrap_or(0);
+        let cats = cats_for(callees.get(key).unwrap_or(&empty), &meta);
         let node = json!({
             "name": name,
-            "entry": m.map(|m| m.entry.clone()).unwrap_or_default(),
+            "entry": entry,
             "size": m.map(|m| m.size).unwrap_or(0),
             "is_thunk": m.map(|m| m.is_thunk).unwrap_or(false),
             "is_external": m.map(|m| m.is_external).unwrap_or(false),
@@ -187,51 +221,48 @@ fn build(export: &Value) -> Value {
     let most_called: Vec<Value> = mc
         .iter()
         .take(MAX_LIST)
-        .map(|(name, d)| {
-            let m = meta.get(*name);
+        .map(|(key, d)| {
+            let (name, entry) = disp(key);
             json!({
                 "name": name,
-                "entry": m.map(|m| m.entry.clone()).unwrap_or_default(),
+                "entry": entry,
                 "in_degree": d,
-                "is_external": m.map(|m| m.is_external).unwrap_or(false),
+                "is_external": meta.get(*key).map(|m| m.is_external).unwrap_or(false),
             })
         })
         .collect();
 
-    let mut ep: Vec<(&String, usize)> = Vec::new();
-    for (name, m) in &meta {
+    let mut ep: Vec<(String, String, usize)> = Vec::new();
+    for (key, m) in &meta {
         if m.is_thunk || m.is_external {
             continue;
         }
-        let ind = callers.get(name).map(BTreeSet::len).unwrap_or(0);
-        let outd = callees.get(name).map(BTreeSet::len).unwrap_or(0);
+        let ind = callers.get(key).map(BTreeSet::len).unwrap_or(0);
+        let outd = callees.get(key).map(BTreeSet::len).unwrap_or(0);
         if ind == 0 && outd > 0 {
-            ep.push((name, outd));
+            ep.push((m.name.clone(), m.entry.clone(), outd));
         }
     }
-    ep.sort_by(|a, b| b.1.cmp(&a.1));
+    ep.sort_by(|a, b| b.2.cmp(&a.2));
     let entry_points: Vec<Value> = ep
         .iter()
         .take(MAX_LIST)
-        .map(|(name, d)| {
-            let m = meta.get(*name);
-            json!({ "name": name, "entry": m.map(|m| m.entry.clone()).unwrap_or_default(), "out_degree": d })
-        })
+        .map(|(name, entry, d)| json!({ "name": name, "entry": entry, "out_degree": d }))
         .collect();
 
     let mut by_category = serde_json::Map::new();
     for &(cat, _) in CATEGORIES {
-        let mut v: Vec<(&String, usize)> = Vec::new();
-        for (name, m) in &meta {
+        let mut v: Vec<(String, usize)> = Vec::new();
+        for (key, m) in &meta {
             if m.is_thunk || m.is_external {
                 continue;
             }
-            if cats_for(callees.get(name).unwrap_or(&empty)).iter().any(|c| c == cat) {
-                v.push((name, callees.get(name).map(BTreeSet::len).unwrap_or(0)));
+            if cats_for(callees.get(key).unwrap_or(&empty), &meta).iter().any(|c| c == cat) {
+                v.push((m.name.clone(), callees.get(key).map(BTreeSet::len).unwrap_or(0)));
             }
         }
         v.sort_by(|a, b| b.1.cmp(&a.1));
-        let names: Vec<Value> = v.iter().take(MAX_LIST).map(|(n, _)| Value::String((*n).clone())).collect();
+        let names: Vec<Value> = v.iter().take(MAX_LIST).map(|(n, _)| Value::String(n.clone())).collect();
         by_category.insert(cat.to_string(), Value::Array(names));
     }
 
@@ -255,12 +286,13 @@ fn build(export: &Value) -> Value {
     })
 }
 
-fn cats_for(callees: &BTreeSet<String>) -> Vec<String> {
+fn cats_for(callees: &BTreeSet<String>, meta: &BTreeMap<String, NodeMeta>) -> Vec<String> {
     let mut out = Vec::new();
     for &(cat, kws) in CATEGORIES {
-        if callees.iter().any(|c| {
-            let lc = c.to_lowercase();
-            kws.iter().any(|k| lc.contains(k))
+        if callees.iter().any(|k| {
+            let name = meta.get(k).map(|m| m.name.as_str()).unwrap_or(k.as_str());
+            let lc = name.to_lowercase();
+            kws.iter().any(|kw| lc.contains(kw))
         }) {
             out.push(cat.to_string());
         }
@@ -272,22 +304,11 @@ fn cats_for(callees: &BTreeSet<String>) -> Vec<String> {
 mod tests {
     use super::*;
 
-    fn export() -> Value {
-        json!({
-            "metadata": { "language": "x86:LE:64:default", "function_count": 4 },
-            "functions": [
-                {"name":"main","entry":"0x1000","size":120,"is_thunk":false,"is_external":false},
-                {"name":"load_config","entry":"0x1100","size":80,"is_thunk":false,"is_external":false},
-                {"name":"CreateFileW","entry":"0x2000","size":6,"is_thunk":true,"is_external":false},
-                {"name":"connect","entry":"0x2008","size":6,"is_thunk":true,"is_external":true}
-            ],
-            "xrefs": [
-                {"to_func":"load_config","from_addr":"0x1010","from_func":"main","type":"UNCONDITIONAL_CALL"},
-                {"to_func":"CreateFileW","from_addr":"0x1110","from_func":"load_config","type":"UNCONDITIONAL_CALL"},
-                {"to_func":"connect","from_addr":"0x1020","from_func":"main","type":"UNCONDITIONAL_CALL"},
-                {"to_func":"CreateFileW","from_addr":"0x1118","from_func":"load_config","type":"UNCONDITIONAL_CALL"}
-            ]
-        })
+    fn node_names(g: &Value) -> Vec<String> {
+        g.get("nodes")
+            .and_then(Value::as_array)
+            .map(|a| a.iter().filter_map(|n| n.get("name").and_then(Value::as_str)).map(String::from).collect())
+            .unwrap_or_default()
     }
 
     fn names_in(v: &Value, ptr: &str) -> Vec<String> {
@@ -297,29 +318,72 @@ mod tests {
             .unwrap_or_default()
     }
 
+    fn export_with_entries() -> Value {
+        json!({
+            "metadata": { "language": "x86:LE:64:default", "function_count": 7 },
+            "functions": [
+                {"name":"main","entry":"0x1000","size":120,"is_thunk":false,"is_external":false},
+                {"name":"load_config","entry":"0x1100","size":80,"is_thunk":false,"is_external":false},
+                {"name":"beacon","entry":"0x1200","size":90,"is_thunk":false,"is_external":false},
+                {"name":"helper","entry":"0x1300","size":20,"is_thunk":false,"is_external":false},
+                {"name":"helper","entry":"0x1400","size":22,"is_thunk":false,"is_external":false},
+                {"name":"CreateFileW","entry":"0x2000","size":6,"is_thunk":true,"is_external":false},
+                {"name":"connect","entry":"0x2010","size":6,"is_thunk":true,"is_external":true}
+            ],
+            "xrefs": [
+                {"to_func":"load_config","to_entry":"0x1100","from_addr":"0x1010","from_func":"main","from_entry":"0x1000","type":"UNCONDITIONAL_CALL"},
+                {"to_func":"beacon","to_entry":"0x1200","from_addr":"0x1020","from_func":"main","from_entry":"0x1000","type":"UNCONDITIONAL_CALL"},
+                {"to_func":"CreateFileW","to_entry":"0x2000","from_addr":"0x1110","from_func":"load_config","from_entry":"0x1100","type":"UNCONDITIONAL_CALL"},
+                {"to_func":"connect","to_entry":"0x2010","from_addr":"0x1210","from_func":"beacon","from_entry":"0x1200","type":"UNCONDITIONAL_CALL"},
+                {"to_func":"helper","to_entry":"0x1300","from_addr":"0x1030","from_func":"main","from_entry":"0x1000","type":"UNCONDITIONAL_CALL"},
+                {"to_func":"helper","to_entry":"0x1400","from_addr":"0x1220","from_func":"beacon","from_entry":"0x1200","type":"UNCONDITIONAL_CALL"}
+            ]
+        })
+    }
+
     #[test]
-    fn edges_deduped_and_counted() {
-        let g = build(&export());
-        assert_eq!(g.pointer("/metadata/edge_count").unwrap().as_u64().unwrap(), 3, "the repeated CreateFileW call collapses to one edge");
-        assert_eq!(g.pointer("/metadata/node_count").unwrap().as_u64().unwrap(), 4);
+    fn same_named_functions_stay_separate_nodes() {
+        let g = build(&export_with_entries());
+        assert_eq!(g.pointer("/metadata/node_count").unwrap().as_u64().unwrap(), 7, "two distinct helper() funcs are two nodes, not one");
+        let helpers = node_names(&g).into_iter().filter(|n| n == "helper").count();
+        assert_eq!(helpers, 2, "both helper entries are kept");
     }
 
     #[test]
     fn categories_tag_the_caller() {
-        let g = build(&export());
-        assert!(names_in(&g, "/by_category/file").contains(&"load_config".to_string()), "load_config calls CreateFileW");
-        assert!(names_in(&g, "/by_category/network").contains(&"main".to_string()), "main calls connect");
+        let g = build(&export_with_entries());
+        assert!(names_in(&g, "/by_category/file").contains(&"load_config".to_string()));
+        assert!(names_in(&g, "/by_category/network").contains(&"beacon".to_string()));
         assert!(!names_in(&g, "/by_category/file").contains(&"CreateFileW".to_string()), "the thunk itself is not a lead");
     }
 
     #[test]
     fn entry_points_and_most_called() {
-        let g = build(&export());
+        let g = build(&export_with_entries());
         let ep: Vec<String> = g.get("entry_points").and_then(Value::as_array).unwrap()
             .iter().filter_map(|e| e.get("name").and_then(Value::as_str)).map(String::from).collect();
         assert!(ep.contains(&"main".to_string()), "main is called by nobody but calls others");
         let called: Vec<String> = g.get("most_called").and_then(Value::as_array).unwrap()
             .iter().filter_map(|e| e.get("name").and_then(Value::as_str)).map(String::from).collect();
         assert!(!called.contains(&"main".to_string()), "a root is never a callee");
+    }
+
+    #[test]
+    fn falls_back_to_name_entry_when_xref_lacks_addresses() {
+        let g = build(&json!({
+            "metadata": { "function_count": 2 },
+            "functions": [
+                {"name":"a","entry":"0x10","size":4,"is_thunk":false,"is_external":false},
+                {"name":"b","entry":"0x20","size":4,"is_thunk":false,"is_external":false}
+            ],
+            "xrefs": [
+                {"to_func":"a","from_addr":"0x22","from_func":"b","type":"UNCONDITIONAL_CALL"}
+            ]
+        }));
+        assert_eq!(g.pointer("/metadata/edge_count").unwrap().as_u64().unwrap(), 1);
+        assert_eq!(g.pointer("/metadata/node_count").unwrap().as_u64().unwrap(), 2, "unique names resolve to their entry keys");
+        assert_eq!(names_in(&g, "/edges/0").len(), 0);
+        let edge0_from = g.pointer("/edges/0/from").and_then(Value::as_str).unwrap();
+        assert_eq!(edge0_from, "0x20", "fallback resolves b's name to its entry address");
     }
 }

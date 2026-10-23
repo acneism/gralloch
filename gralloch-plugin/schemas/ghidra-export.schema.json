@@ -53,8 +53,10 @@
         "required": ["to_func", "from_addr", "type"],
         "properties": {
           "to_func": { "type": "string" },
+          "to_entry": { "type": "string" },
           "from_addr": { "type": "string" },
           "from_func": { "type": ["string", "null"] },
+          "from_entry": { "type": ["string", "null"] },
           "type": { "type": "string" }
         }
       }

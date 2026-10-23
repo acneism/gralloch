@@ -131,8 +131,10 @@ public class ghidra_export extends GhidraScript {
                 }
                 sb.append("\n    {");
                 sb.append("\"to_func\": ").append(js(f.getName())).append(", ");
+                sb.append("\"to_entry\": ").append(js(addr(entry))).append(", ");
                 sb.append("\"from_addr\": ").append(js(addr(fromAddr))).append(", ");
                 sb.append("\"from_func\": ").append(caller != null ? js(caller.getName()) : "null").append(", ");
+                sb.append("\"from_entry\": ").append(caller != null ? js(addr(caller.getEntryPoint())) : "null").append(", ");
                 sb.append("\"type\": ").append(js(ref.getReferenceType().toString()));
                 sb.append("}");
                 n++;
