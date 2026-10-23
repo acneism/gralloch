@@ -104,7 +104,7 @@ prerequisites above are required for installation.
 ### Install once (Windows)
 
 ```powershell
-git clone --branch codex-support https://github.com/acneism/gralloch.git
+git clone https://github.com/acneism/gralloch.git
 cd gralloch
 .\scripts\install-codex.ps1
 ```
