@@ -64,7 +64,13 @@ if ($PackageOnly) { return }
 if ($LASTEXITCODE -ne 0) { throw 'Codex marketplace registration failed.' }
 $installJson = & codex plugin add 'gralloch@gralloch-codex' --json
 if ($LASTEXITCODE -ne 0) { throw 'Codex plugin installation failed.' }
-$installation = ($installJson -join "`n") | ConvertFrom-Json
+# codex may print non-JSON lines to stdout; surface the raw output instead of an opaque parser error.
+$installText = $installJson -join "`n"
+try {
+    $installation = $installText | ConvertFrom-Json
+} catch {
+    throw "Could not parse 'codex plugin add --json' output as JSON. Raw output:`n$installText"
+}
 $installedRoot = $installation.installedPath
 if ($installation.pluginId -ne 'gralloch@gralloch-codex' -or
     -not $installedRoot -or -not [System.IO.Path]::IsPathRooted($installedRoot)) {
