@@ -142,3 +142,7 @@ and antivirus tampering; dynamic analysis runs only inside a VM; sample-derived 
 as untrusted data. See the `gralloch-isolation` skill.
 
 See [Codex isolation details](docs/CODEX.md#codex-isolation-boundary).
+
+## License
+
+Licensed under the [Mozilla Public License 2.0](LICENSE).
