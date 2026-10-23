@@ -1,7 +1,7 @@
 # gralloch
 
 Isolation-first, semi-automatic **reverse-engineering pipeline for Windows PE**,
-delivered as a Claude Code plugin, with [Codex support](#codex).
+available as a plugin for [Claude Code](#claude-code) and [Codex](#codex).
 The coding agent orchestrates established tools
 (Ghidra, capa, Frida, …); a native Rust MCP server does the fast deterministic
 work (triage, safe case creation). The pipeline is a thin wrapper over existing
@@ -11,37 +11,82 @@ tools, not a new analysis engine.
 - **Marketplace:** `.claude-plugin/marketplace.json` (repo root is an installable marketplace)
 - **Test data:** [`testdata/`](testdata/) — safe corpus tooling + a `pefile` cross-check
 - **Commands:** [`docs/README.md`](docs/README.md) — every slash command, incl. one-shot `/gralloch <sample>`
-- **Codex:** [quick start](#quick-start-codex) / [full setup](#codex) — install and run `$gralloch:gralloch`
+- **Install and run:** [Claude Code](#claude-code) / [Codex](#codex)
 
-## Quick start: Codex
+## Installation and launch
 
-**1. Install once in PowerShell (Windows).** Requires Codex CLI, Rust, and a C
-linker; see [prerequisites](#prerequisites).
+Requires Windows, Rust, a C linker, and your chosen coding agent; see
+[prerequisites](#prerequisites). Clone the repository once in PowerShell:
 
 ```powershell
 git clone https://github.com/acneism/gralloch.git
 cd gralloch
-.\scripts\install-codex.ps1
 ```
 
-Add `-Yara` to the installer command to enable YARA scanning.
+Choose your client below. Both sets of PowerShell commands run from this
+repository root.
 
-**2. Start a new local Codex chat and send this command:**
+### Claude Code
+
+**1. Build the server in PowerShell:**
+
+```powershell
+.\gralloch-plugin\gralloch-mcp\build-windows.ps1 -Yara
+```
+
+**2. Install in Claude Code:**
+
+```text
+/plugin marketplace add <absolute-path-to-this-repo>
+/plugin install gralloch@gralloch-marketplace
+```
+
+**3. Configure:** set **Cases root** outside the repository using `/config`.
+Optional tool paths can be configured there too; see
+[configuration](docs/README.md#configuration).
+
+**4. Run in a Claude Code chat:**
+
+```text
+/gralloch C:\samples\app.exe --profile understand --cases-root C:\analysis\cases
+```
+
+Single stages use `/case-new`, `/triage`, `/capa`, `/yara`, `/unpack`, `/static`,
+`/deobfuscate`, `/dynamics`, `/verify`, and `/report`. See the
+[Claude Code command reference](docs/README.md).
+
+### Codex
+
+**1. Install in PowerShell:**
+
+```powershell
+.\scripts\install-codex.ps1 -Yara
+```
+
+This builds the server and installs `gralloch@gralloch-codex` through Codex's
+plugin manager. Codex CLI with `codex plugin add` must be installed.
+
+**2. Start a new local Codex chat and run:**
 
 ```text
 $gralloch:gralloch "C:\samples\app.exe" --profile understand --cases-root "C:\analysis\cases"
 ```
 
-Replace the sample path and cases directory with your own. The cases directory
-must be outside the repository. This runs the static pipeline and generates a
-report; running the sample requires a separate analysis VM.
-See [all Codex commands and troubleshooting](#codex).
+The installed command works from any working directory. The runtime package
+includes its server, scripts, schemas, and stage guides. See
+[Codex details](#codex-details) for updates, single-stage commands, and troubleshooting.
+
+For either client, replace the sample path and cases directory with your own.
+The cases directory must be outside the repository. The commands above run the
+static pipeline and generate a report; sample execution is a separate VM task.
+`-Yara` enables YARA scanning; omit it from either build/install command for a
+smaller build without that optional stage.
 
 ## Prerequisites
 
-**Host:** Windows + [Claude Code](https://code.claude.com) or Codex (see
-[Codex setup](#codex)). Steps 1–4 below describe Claude Code. Analysis stays on the
-host; executing a sample is a VM task (see Safety).
+**Host:** Windows + [Claude Code](https://code.claude.com) or Codex CLI with
+`codex plugin add`. Analysis stays on the host; executing a sample is a VM task
+(see [Safety](#safety)).
 
 **To build the MCP server (required):**
 
@@ -68,70 +113,9 @@ absent is skipped, never fatal:
 YARA needs no external tool — baseline rules ship in the plugin and run in the
 `yara`-feature build.
 
-## 1. Build the server
+## Codex details
 
-```powershell
-cd gralloch-plugin\gralloch-mcp
-.\build-windows.ps1          # default build  -> ..\bin\gralloch-mcp.exe
-.\build-windows.ps1 -Yara    # also compile the YARA engine (enables /yara)
-```
-
-The one-shot `/gralloch` pipeline and `/yara` expect the `-Yara` build. The exe
-lands in `gralloch-plugin/bin/`, where `.mcp.json` points.
-
-## 2. Install the plugin
-
-```
-# in Claude Code
-/plugin marketplace add <path-to-this-repo>
-/plugin install gralloch@gralloch-marketplace
-```
-
-The `gralloch` MCP server starts automatically once `bin/gralloch-mcp.exe` exists.
-
-## 3. Configure (once)
-
-Set via `/config`: **Cases root** (a working directory outside the plugin) and,
-optionally, **capa executable**, **upx executable**, **Ghidra install dir**.
-Details in [`docs/README.md`](docs/README.md#configuration).
-
-## 4. Run
-
-One shot — runs the automatic host stages (case → triage → unpack? → capa →
-yara → deobfuscate → report):
-
-```
-/gralloch C:\path\to\sample.exe --profile malware
-```
-
-Then the stages that need external tooling or the VM, when you have them:
-
-```
-/static   <case-dir>            # Ghidra headless export (needs Ghidra)
-/dynamics <case-dir>            # Frida trace, inside the VM, on your command
-/verify   <case-dir>            # promote hypotheses that have evidence
-/gralloch --report <case-dir>   # rebuild report.md with everything folded in
-```
-
-Run a single stage directly — `/gralloch --verify <case-dir>`, or any of
-`/case-new`, `/triage`, `/capa`, `/yara`, `/unpack`, `/deobfuscate`, `/report`.
-All commands are documented in [`docs/README.md`](docs/README.md).
-
-## Codex
-
-Install the Gralloch plugin once, then invoke its `$gralloch:gralloch` skill from a local
-Codex chat in any working directory. The installed package includes the MCP
-server, scripts, schemas, and stage guides; it does not depend on the checkout
-at runtime. Windows, Codex CLI with `codex plugin add`, and the Rust/linker
-prerequisites above are required for installation.
-
-### Install once (Windows)
-
-```powershell
-git clone https://github.com/acneism/gralloch.git
-cd gralloch
-.\scripts\install-codex.ps1
-```
+### Installation and updates
 
 The installer builds the native server, prepares a runtime package, registers
 `gralloch-codex` as a local marketplace, and installs `gralloch@gralloch-codex`
@@ -151,19 +135,7 @@ ignored by Git and is the local marketplace's package source. Do not register
 the Git repository URL as a ready-to-run marketplace: server binaries are built
 locally and are not committed.
 
-### Run the command in Codex
-
-In a **Codex chat**, send:
-
-```text
-$gralloch:gralloch "C:\samples\app.exe" --profile understand --cases-root "C:\analysis\cases"
-```
-
-This starts case creation, triage, applicable static unpacking, optional capa
-and YARA, string deobfuscation, and the final report. Missing optional tools are
-reported and skipped. Without `--cases-root`, the skill asks for the location
-unless `GRALLOCH_CASES_ROOT` supplies one. The profile defaults to `understand`.
-Sample execution is a separate VM-only task.
+### Single-stage commands
 
 Single-stage examples:
 
