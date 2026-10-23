@@ -1,3 +1,4 @@
+mod callgraph;
 mod capa;
 mod casedir;
 mod deobf;

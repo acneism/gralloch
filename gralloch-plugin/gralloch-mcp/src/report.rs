@@ -24,6 +24,7 @@ pub fn report(case_dir: &str) -> Result<ReportResult> {
     let dynamic = read_json(&a.join("dynamic.json"));
     let verification = read_json(&a.join("verification.json"));
     let ghidra = read_json(&a.join("ghidra").join("ghidra_export.json"));
+    let callgraph = read_json(&a.join("ghidra").join("callgraph.json"));
 
     let mut used: Vec<&str> = Vec::new();
     for (name, present) in [
@@ -34,6 +35,7 @@ pub fn report(case_dir: &str) -> Result<ReportResult> {
         ("unpack.json", unpack.is_some()),
         ("deobfuscated.json", deobf.is_some()),
         ("ghidra/ghidra_export.json", ghidra.is_some()),
+        ("ghidra/callgraph.json", callgraph.is_some()),
         ("dynamic.json", dynamic.is_some()),
         ("verification.json", verification.is_some()),
     ] {
@@ -66,6 +68,7 @@ pub fn report(case_dir: &str) -> Result<ReportResult> {
         })),
         "deobfuscation": deobf_summary(&deobf),
         "static": ghidra_summary(&ghidra),
+        "callgraph": callgraph_summary(&callgraph),
         "dynamics": dyn_summary(&dynamic),
         "iocs": {
             "network": &net, "files": &files, "registry": &registry,
@@ -257,6 +260,32 @@ fn ghidra_summary(g: &Option<Value>) -> Value {
     })
 }
 
+fn callgraph_summary(g: &Option<Value>) -> Value {
+    let g = match g {
+        Some(g) => g,
+        None => return Value::Null,
+    };
+    let names = |key: &str| -> Vec<Value> {
+        g.get(key)
+            .and_then(Value::as_array)
+            .map(|a| {
+                a.iter()
+                    .filter_map(|n| n.get("name").and_then(Value::as_str))
+                    .take(MAX_LIST)
+                    .map(|s| Value::String(s.to_string()))
+                    .collect()
+            })
+            .unwrap_or_default()
+    };
+    json!({
+        "node_count": g.pointer("/metadata/node_count").cloned().unwrap_or(Value::Null),
+        "edge_count": g.pointer("/metadata/edge_count").cloned().unwrap_or(Value::Null),
+        "by_category": g.get("by_category").cloned().unwrap_or(Value::Null),
+        "entry_points": names("entry_points"),
+        "most_called": names("most_called"),
+    })
+}
+
 fn dyn_ioc(d: &Option<Value>, key: &str) -> Vec<String> {
     d.as_ref()
         .and_then(|d| d.pointer(&format!("/iocs/{key}")))
@@ -391,6 +420,50 @@ fn render_md(
             for s in ss.into_iter().flatten() {
                 if let Some(v) = s.as_str() {
                     m.push_str(&format!("- {}\n", safe(v)));
+                }
+            }
+        }
+        m.push('\n');
+    }
+
+    if let Some(cg) = report.get("callgraph").filter(|v| !v.is_null()) {
+        m.push_str("## Call graph\n\n");
+        fld(&mut m, "functions (nodes)", cg.get("node_count"));
+        fld(&mut m, "edges", cg.get("edge_count"));
+        if let Some(bc) = cg.get("by_category").and_then(Value::as_object) {
+            let mut lines: Vec<String> = Vec::new();
+            for (cat, names) in bc {
+                if let Some(arr) = names.as_array() {
+                    if arr.is_empty() {
+                        continue;
+                    }
+                    let joined: Vec<String> = arr.iter().filter_map(Value::as_str).map(safe).collect();
+                    lines.push(format!("- {}: {}", cat, joined.join(", ")));
+                }
+            }
+            if !lines.is_empty() {
+                m.push_str("\n**Functions by behavior (leads):**\n\n");
+                for l in lines {
+                    m.push_str(&l);
+                    m.push('\n');
+                }
+            }
+        }
+        let ep = cg.get("entry_points").and_then(Value::as_array);
+        if ep.map(|a| !a.is_empty()).unwrap_or(false) {
+            m.push_str("\n**Candidate entry points:**\n\n");
+            for n in ep.into_iter().flatten() {
+                if let Some(s) = n.as_str() {
+                    m.push_str(&format!("- {}\n", safe(s)));
+                }
+            }
+        }
+        let mc = cg.get("most_called").and_then(Value::as_array);
+        if mc.map(|a| !a.is_empty()).unwrap_or(false) {
+            m.push_str("\n**Most referenced:**\n\n");
+            for n in mc.into_iter().flatten() {
+                if let Some(s) = n.as_str() {
+                    m.push_str(&format!("- {}\n", safe(s)));
                 }
             }
         }

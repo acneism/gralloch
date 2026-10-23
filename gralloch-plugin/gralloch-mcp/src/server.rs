@@ -57,6 +57,12 @@ pub struct ReportParams {
 }
 
 #[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
+pub struct CallGraphParams {
+    #[schemars(description = "Path to the case directory. artifacts/ghidra/ghidra_export.json must already exist (run the Ghidra static export first).")]
+    pub case_dir: String,
+}
+
+#[derive(Debug, serde::Deserialize, schemars::JsonSchema)]
 pub struct YaraScanParams {
     #[schemars(description = "Path to the case directory previously created by case_new.")]
     pub case_dir: String,
@@ -194,6 +200,21 @@ impl Gralloch {
             Ok(r) => Ok(CallToolResult::success(vec![ContentBlock::text(r.summary)])),
             Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
                 "report failed: {e:#}"
+            ))])),
+        }
+    }
+
+    #[tool(
+        description = "Build a call graph from the Ghidra static export (artifacts/ghidra/ghidra_export.json): invert the function-entry xrefs into caller/callee edges, tag each internal function with keyword-inferred behavior categories (file/network/crypto/process/registry/persistence), and surface candidate entry points and most-referenced functions. Writes bounded artifacts/ghidra/callgraph.json. Reads JSON only; executes nothing. Function names and inferred categories are untrusted, sample-derived leads."
+    )]
+    async fn call_graph(
+        &self,
+        Parameters(p): Parameters<CallGraphParams>,
+    ) -> Result<CallToolResult, rmcp::ErrorData> {
+        match crate::callgraph::call_graph(&p.case_dir) {
+            Ok(r) => Ok(CallToolResult::success(vec![ContentBlock::text(r.summary)])),
+            Err(e) => Ok(CallToolResult::error(vec![ContentBlock::text(format!(
+                "call_graph failed: {e:#}"
             ))])),
         }
     }
