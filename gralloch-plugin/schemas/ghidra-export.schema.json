@@ -42,7 +42,8 @@
         "required": ["addr", "value"],
         "properties": {
           "addr": { "type": "string" },
-          "value": { "type": "string" }
+          "value": { "type": "string" },
+          "refs": { "type": "array", "items": { "type": "string" }, "description": "Entry addresses of functions that reference this string." }
         }
       }
     },
