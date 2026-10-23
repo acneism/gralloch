@@ -17,6 +17,7 @@
         "function_count": { "type": ["integer", "null"], "minimum": 0 },
         "node_count": { "type": "integer", "minimum": 0 },
         "edge_count": { "type": "integer", "minimum": 0 },
+        "category_source": { "type": "string", "description": "capa (capability->address join) or name-keyword (fallback heuristic)" },
         "truncated": { "type": "boolean" }
       }
     },

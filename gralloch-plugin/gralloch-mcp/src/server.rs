@@ -205,7 +205,7 @@ impl Gralloch {
     }
 
     #[tool(
-        description = "Build a call graph from the Ghidra static export (artifacts/ghidra/ghidra_export.json): invert the function-entry xrefs into caller/callee edges, tag each internal function with keyword-inferred behavior categories (file/network/crypto/process/registry/persistence), and surface candidate entry points and most-referenced functions. Writes bounded artifacts/ghidra/callgraph.json. Reads JSON only; executes nothing. Function names and inferred categories are untrusted, sample-derived leads."
+        description = "Build a call graph from the Ghidra static export (artifacts/ghidra/ghidra_export.json): invert the function-entry xrefs into caller/callee edges keyed by entry address, tag functions with behavior categories, and surface candidate entry points and most-referenced functions. Categories come from capa capability->address matches when artifacts/capa.json is present (reliable even on stripped binaries), otherwise from a function-name keyword heuristic; metadata.category_source records which. Writes bounded artifacts/ghidra/callgraph.json. Reads JSON only; executes nothing. Function names and categories are untrusted, sample-derived leads."
     )]
     async fn call_graph(
         &self,
