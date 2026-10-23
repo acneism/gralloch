@@ -44,8 +44,8 @@ tool is absent** — never fail the whole run:
 7. **Stage 7 — report**: `report(case_dir)`. Show `artifacts/report.md`.
 
 Then tell the user which stages were **not** automated and why:
-- **Stage 3 static (Ghidra)** — needs a Ghidra install; run `/static` then
-  `/gralloch --report` to fold it in.
+- **Stage 3 static (Ghidra)** — needs a Ghidra install; run `/static` (which also
+  builds the call graph), then `/gralloch --report` to fold it in.
 - **Stage 5 dynamics (VM)** — executes the sample, so it is VM-only and
   user-initiated; run `/dynamics`, then `/verify` and `/gralloch --report`.
 

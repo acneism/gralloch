@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gralloch/schemas/callgraph.schema.json",
+  "title": "gralloch call graph",
+  "description": "Output of the gralloch-mcp `call_graph` tool. Built by inverting the Ghidra export's function-entry xrefs. Function names and keyword-inferred behavior categories are sample-derived and untrusted.",
+  "type": "object",
+  "required": ["schema_version", "generated_by", "metadata", "nodes", "edges", "entry_points", "most_called", "by_category"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "generated_by": { "type": "string" },
+    "_untrusted": { "type": "string" },
+    "metadata": {
+      "type": "object",
+      "required": ["node_count", "edge_count", "truncated"],
+      "properties": {
+        "language": { "type": ["string", "null"] },
+        "function_count": { "type": ["integer", "null"], "minimum": 0 },
+        "node_count": { "type": "integer", "minimum": 0 },
+        "edge_count": { "type": "integer", "minimum": 0 },
+        "truncated": { "type": "boolean" }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "in_degree", "out_degree"],
+        "properties": {
+          "name": { "type": "string" },
+          "entry": { "type": "string" },
+          "size": { "type": "integer", "minimum": 0 },
+          "is_thunk": { "type": "boolean" },
+          "is_external": { "type": "boolean" },
+          "in_degree": { "type": "integer", "minimum": 0 },
+          "out_degree": { "type": "integer", "minimum": 0 },
+          "categories": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from", "to"],
+        "properties": {
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "type": { "type": "string" }
+        }
+      }
+    },
+    "entry_points": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "entry": { "type": "string" },
+          "out_degree": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "most_called": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "entry": { "type": "string" },
+          "in_degree": { "type": "integer", "minimum": 0 },
+          "is_external": { "type": "boolean" }
+        }
+      }
+    },
+    "by_category": {
+      "type": "object",
+      "additionalProperties": { "type": "array", "items": { "type": "string" } }
+    }
+  }
+}

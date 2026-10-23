@@ -58,7 +58,7 @@ def main():
             status = rpc('mcpServerStatus/list', {'threadId': thread})
             server = next(s for s in status['data'] if s.get('pluginId') == 'gralloch@gralloch-codex')
             assert server['runtimeStatus'] == 'connected', server
-            expected = {'case_new', 'triage', 'capa_import', 'yara_scan', 'deobfuscate', 'dynamic_import', 'verify', 'report'}
+            expected = {'case_new', 'triage', 'capa_import', 'yara_scan', 'deobfuscate', 'dynamic_import', 'call_graph', 'verify', 'report'}
             assert set(server['tools']) == expected, server
             def tool(name, arguments):
                 result = rpc('mcpServer/tool/call', {'threadId': thread, 'server': server['name'],
@@ -86,9 +86,15 @@ def main():
                 assert 'without the `yara` feature' in str(yara), yara
                 print('SKIP: YARA engine not compiled in')
             results.append({'tool': 'yara_scan', 'result': yara})
+            cg = rpc('mcpServer/tool/call', {'threadId': thread, 'server': server['name'],
+                                             'tool': 'call_graph', 'arguments': {'case_dir': str(case)}})
+            if cg.get('isError'):
+                assert 'ghidra_export.json' in str(cg), cg
+                print('SKIP: no Ghidra export for call_graph')
+            results.append({'tool': 'call_graph', 'result': cg})
             tool('report', {'case_dir': str(case)})
             assert not json.loads((case / 'artifacts/report.json').read_text('utf-8'))['findings']['confirmed']
-            print('PASS: command discovery, native MCP startup, 8 tool contracts, paths with spaces')
+            print('PASS: command discovery, native MCP startup, 9 tool contracts, paths with spaces')
         finally:
             (output / 'runtime-results.json').write_text(json.dumps(results, indent=2), 'utf-8')
             proc.terminate()

@@ -16,6 +16,7 @@
     "unpack": { "type": ["object", "null"] },
     "deobfuscation": { "type": ["object", "null"] },
     "static": { "type": ["object", "null"] },
+    "callgraph": { "type": ["object", "null"] },
     "dynamics": { "type": ["object", "null"] },
     "iocs": {
       "type": "object",

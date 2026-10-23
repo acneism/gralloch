@@ -54,7 +54,7 @@ Optional tool paths can be configured there too; see
 ```
 
 Single stages use `/case-new`, `/triage`, `/capa`, `/yara`, `/unpack`, `/static`,
-`/deobfuscate`, `/dynamics`, `/verify`, and `/report`. See the
+`/callgraph`, `/deobfuscate`, `/dynamics`, `/verify`, and `/report`. See the
 [Claude Code command reference](docs/README.md).
 
 ### Codex
@@ -124,6 +124,7 @@ YARA needs no external tool — baseline rules ship in the plugin and run in the
 | 1 | YARA scan (`yara_scan` + `/yara`) | built & verified vs yara-x 1.22 (cargo feature `yara`) |
 | 2 | static unpack (`/unpack`, UPX) | built & verified vs upx 5.2.1 (round-trip + re-triage) |
 | 3 | Ghidra headless export (`/static`) | built & verified vs Ghidra 12.2 (Java export script) |
+| 3 | call graph (`call_graph` + `/callgraph`) | built & verified (derived from the Ghidra export; cargo test + MCP e2e) |
 | 4 | static deobfuscation (`deobfuscate` + `/deobfuscate`) | built & verified (strings, XOR brute, base64) |
 | 5 | dynamics: VM trace + `dynamic_import` (`/dynamics`) | built & verified (host imports VM trace; never executes) |
 | 6 | verification (`verify` + `/verify`) | built & verified (confirmed⇒evidence; writeback via Ghidra MCP) |

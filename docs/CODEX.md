@@ -39,7 +39,8 @@ $gralloch:gralloch --report "C:\analysis\cases\<case>"
 ```
 
 The same command supports `--case-new <sample>`, `--capa <case-dir>`,
-`--yara <case-dir>`, `--unpack <case-dir>`, and `--deobfuscate <case-dir>`.
+`--yara <case-dir>`, `--unpack <case-dir>`, `--deobfuscate <case-dir>`, and
+`--callgraph <case-dir>`.
 To import a trace already produced in the VM, use
 `--dynamics <case-dir> --trace <trace.json>`. Without `--trace`, the dynamics
 stage provides VM instructions and checks preconditions; it does not execute
@@ -97,7 +98,7 @@ codex
 
 Use `/mcp` in the CLI to inspect the connection. The `gralloch` server
 should expose `case_new`, `triage`, `capa_import`, `yara_scan`, `deobfuscate`,
-`dynamic_import`, `verify`, and `report`.
+`dynamic_import`, `call_graph`, `verify`, and `report`.
 
 The skill is loaded from `.agents/skills/gralloch/SKILL.md` for chats working in
 this checkout. It relies on the shared files in this repository; copying only
@@ -152,7 +153,7 @@ approval modes for malware analysis.
 
 Run `python -m unittest discover -s tests -p test_codex_package.py` for packaging
 and installation-path regression tests. To test an installed copy through the
-actual Codex app-server, including native MCP startup and all eight tool
+actual Codex app-server, including native MCP startup and all nine tool
 contracts, run:
 
 ```powershell
