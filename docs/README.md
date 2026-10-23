@@ -1,5 +1,7 @@
 # gralloch commands
 
+For Codex configuration and commands, see the [Codex reference](CODEX.md).
+
 Slash commands shipped by the `gralloch` plugin (`gralloch-plugin/commands/`).
 Each command is an orchestration prompt: it drives the native `gralloch-mcp`
 tools and the `scripts/` helpers through one pipeline stage. Every stage treats
