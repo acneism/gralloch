@@ -55,12 +55,12 @@ const CATEGORIES: &[(&str, &[&str])] = &[
     ),
 ];
 
-struct NodeMeta {
-    name: String,
-    entry: String,
-    size: u64,
-    is_thunk: bool,
-    is_external: bool,
+pub(crate) struct NodeMeta {
+    pub(crate) name: String,
+    pub(crate) entry: String,
+    pub(crate) size: u64,
+    pub(crate) is_thunk: bool,
+    pub(crate) is_external: bool,
 }
 
 pub struct CallGraphResult {
@@ -304,7 +304,7 @@ fn build(export: &Value, capa: Option<&Value>) -> Value {
     })
 }
 
-fn capa_join(capa: &Value, meta: &BTreeMap<String, NodeMeta>) -> BTreeMap<String, BTreeSet<String>> {
+pub(crate) fn capa_join(capa: &Value, meta: &BTreeMap<String, NodeMeta>) -> BTreeMap<String, BTreeSet<String>> {
     let mut ranges: Vec<(u64, u64, String)> = meta
         .iter()
         .filter_map(|(k, m)| {
@@ -361,12 +361,12 @@ fn containing(ranges: &[(u64, u64, String)], addr: u64) -> Option<String> {
     }
 }
 
-fn parse_hex(s: &str) -> Option<u64> {
+pub(crate) fn parse_hex(s: &str) -> Option<u64> {
     let t = s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")).unwrap_or(s);
     u64::from_str_radix(t, 16).ok()
 }
 
-fn cats_for(callees: &BTreeSet<String>, meta: &BTreeMap<String, NodeMeta>) -> Vec<String> {
+pub(crate) fn cats_for(callees: &BTreeSet<String>, meta: &BTreeMap<String, NodeMeta>) -> Vec<String> {
     let mut out = Vec::new();
     for &(cat, kws) in CATEGORIES {
         if callees.iter().any(|k| {
