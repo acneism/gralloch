@@ -280,6 +280,7 @@ fn callgraph_summary(g: &Option<Value>) -> Value {
     json!({
         "node_count": g.pointer("/metadata/node_count").cloned().unwrap_or(Value::Null),
         "edge_count": g.pointer("/metadata/edge_count").cloned().unwrap_or(Value::Null),
+        "category_source": g.pointer("/metadata/category_source").cloned().unwrap_or(Value::Null),
         "by_category": g.get("by_category").cloned().unwrap_or(Value::Null),
         "entry_points": names("entry_points"),
         "most_called": names("most_called"),
@@ -430,6 +431,7 @@ fn render_md(
         m.push_str("## Call graph\n\n");
         fld(&mut m, "functions (nodes)", cg.get("node_count"));
         fld(&mut m, "edges", cg.get("edge_count"));
+        fld(&mut m, "category source", cg.get("category_source"));
         if let Some(bc) = cg.get("by_category").and_then(Value::as_object) {
             let mut lines: Vec<String> = Vec::new();
             for (cat, names) in bc {
