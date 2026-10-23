@@ -19,7 +19,7 @@ class PackageTests(unittest.TestCase):
         self.repo = pathlib.Path(self.temp.name)
         for relative in ('scripts/install-codex.ps1', '.codex-plugin/plugin.json',
                          '.mcp.codex.json', '.agents/skills/gralloch/SKILL.md',
-                         'README.md', 'docs/CODEX.md', 'LICENSE'):
+                         'README.md', 'assets/gralloch-logo.png', 'docs/CODEX.md', 'LICENSE'):
             dest = self.repo / relative
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(SOURCE / relative, dest)
@@ -47,6 +47,7 @@ class PackageTests(unittest.TestCase):
         self.assertTrue((self.package / 'gralloch-plugin/bin/gralloch-mcp.exe').is_file())
         self.assertTrue((self.package / manifest['mcpServers']).is_file())
         self.assertTrue((self.package / 'docs/CODEX.md').is_file())
+        self.assertTrue((self.package / 'assets/gralloch-logo.png').is_file())
         self.assertFalse((self.package / '.codex/config.toml').exists())
         self.assertFalse((self.package / 'gralloch-plugin/hooks').exists())
         self.assertFalse((self.package / 'gralloch-plugin/gralloch-mcp').exists())

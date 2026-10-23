@@ -1,4 +1,6 @@
-# gralloch
+<p align="center">
+  <img src="assets/gralloch-logo.png" alt="gralloch" width="760">
+</p>
 
 Isolation-first, semi-automatic **reverse-engineering pipeline for Windows PE**,
 available as a plugin for [Claude Code](#claude-code) and [Codex](#codex).

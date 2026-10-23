@@ -46,7 +46,7 @@ foreach ($relative in @('.codex-plugin', '.agents\skills', 'gralloch-plugin\bin'
     'gralloch-plugin\skills', 'gralloch-plugin\scripts', 'gralloch-plugin\schemas')) {
     New-Item -ItemType Directory -Force -Path (Join-Path $packageRoot $relative) | Out-Null
 }
-foreach ($relative in @('README.md', 'docs\CODEX.md', 'LICENSE', '.mcp.codex.json', '.codex-plugin\plugin.json',
+foreach ($relative in @('README.md', 'assets\gralloch-logo.png', 'docs\CODEX.md', 'LICENSE', '.mcp.codex.json', '.codex-plugin\plugin.json',
     '.agents\skills\gralloch\SKILL.md', 'gralloch-plugin\bin\gralloch-mcp.exe')) {
     $destination = Join-Path $packageRoot $relative
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
