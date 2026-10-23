@@ -37,6 +37,19 @@ command, not a hang.
    renames/types through it (one writer only). Otherwise keep names in `notes.md`
    until the writeback step.
 
+## Call graph
+
+Build a call graph from the export to orient faster than reading functions one
+by one:
+
+```
+call_graph(case_dir="<case dir>")
+```
+
+Writes `artifacts/ghidra/callgraph.json` — caller/callee edges, per-function
+degree, keyword-inferred behavior categories, candidate entry points, and
+most-referenced functions. See [gralloch-callgraph](../gralloch-callgraph/SKILL.md).
+
 ## Boundaries
 
 - Do not promote a hypothesis to `confirmed` from static evidence alone; that

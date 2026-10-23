@@ -28,7 +28,8 @@ manual runs, and for the stages that cannot be automated on the host.
 | 1 | `/capa [case-dir]` | capa capability detection (ATT&CK/MBC) → `capa-summary.json`, folded into triage. | `run-capa.ps1` + `capa_import` |
 | 1 | `/yara [case-dir]` | YARA scan with the built-in baseline rules → `yara.json`. Needs the `yara`-feature build. | `yara_scan` |
 | 2 | `/unpack [case-dir]` | Static UPX unpack on the host (never executes); runtime packers route to the VM. | `run-unpack.ps1` |
-| 3 | `/static [case-dir]` | Ghidra headless export of functions/strings/xrefs. Needs a Ghidra install. | `run-ghidra-headless.ps1` + `ghidra_export.py` |
+| 3 | `/static [case-dir]` | Ghidra headless export of functions/strings/xrefs. Needs a Ghidra install. | `run-ghidra-headless.ps1` + `ghidra_export.java` |
+| 3 | `/callgraph [case-dir]` | Build a call graph from the Ghidra export: caller/callee edges, behavior categories, entry points → `ghidra/callgraph.json`. | `call_graph` |
 | 4 | `/deobfuscate [case-dir]` | Static deobfuscation: strings, single-byte XOR brute (dictionary-scored), base64 → `deobfuscated.json`. | `deobfuscate` |
 | 5 | `/dynamics [case-dir]` | Prepare Frida tracing (VM-only, user-initiated) and import the resulting trace → `dynamic.json`. | `frida_trace.js` + `run-frida.py` (VM) → `dynamic_import` (host) |
 | 6 | `/verify [case-dir]` | Validate `hypotheses.json`: a `confirmed` finding must cite evidence that exists; list writeback-ready items. | `verify` |
@@ -61,7 +62,8 @@ time — they are declared as the plugin's `userConfig`:
 
 ```
 /gralloch suspicious.exe --profile malware     # auto: case → triage → … → report
-/static <case-dir>                             # if you have Ghidra
+/static <case-dir>                             # if you have Ghidra (also builds the call graph)
+/callgraph <case-dir>                          # rebuild the call graph alone
 /dynamics <case-dir>                           # in the VM, on your command
 /verify <case-dir>                             # promote hypotheses with evidence
 /gralloch --report <case-dir>                  # final report with everything folded in

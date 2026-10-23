@@ -32,6 +32,7 @@ the working directory. Support these single-stage commands:
 | `--yara <case-dir>` | `yara_scan` only |
 | `--unpack <case-dir>` | `run-unpack.ps1` only; show the output and next route |
 | `--static <case-dir>` | Ghidra wrapper/export only |
+| `--callgraph <case-dir>` | `call_graph` only (needs the Ghidra export) |
 | `--deobfuscate <case-dir>` | `deobfuscate` only |
 | `--dynamics <case-dir> --trace <trace.json>` | `dynamic_import` only; do not run the sample |
 | `--verify <case-dir>` | `verify` only |
@@ -99,6 +100,9 @@ Read only the guide relevant to the requested stage:
 
 - [Static / Ghidra](../../../gralloch-plugin/skills/gralloch-static/SKILL.md):
   use `GHIDRA_INSTALL_DIR` or an explicit `-GhidraDir`.
+- [Call graph](../../../gralloch-plugin/skills/gralloch-callgraph/SKILL.md):
+  `call_graph(case_dir)` turns the Ghidra export into caller/callee edges,
+  behavior categories, and entry points.
 - [Dynamics](../../../gralloch-plugin/skills/gralloch-dynamics/SKILL.md): VM
   tracing only; `dynamic_import` safely imports a returned trace on the host.
 - [Verification](../../../gralloch-plugin/skills/gralloch-verify/SKILL.md):
