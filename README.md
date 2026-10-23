@@ -11,7 +11,31 @@ tools, not a new analysis engine.
 - **Marketplace:** `.claude-plugin/marketplace.json` (repo root is an installable marketplace)
 - **Test data:** [`testdata/`](testdata/) — safe corpus tooling + a `pefile` cross-check
 - **Commands:** [`docs/README.md`](docs/README.md) — every slash command, incl. one-shot `/gralloch <sample>`
-- **Codex:** [setup and usage](#codex) — Windows setup, MCP connection, and `$gralloch` skill
+- **Codex:** [quick start](#quick-start-codex) / [full setup](#codex) — install and run `$gralloch:gralloch`
+
+## Quick start: Codex
+
+**1. Install once in PowerShell (Windows).** Requires Codex CLI, Rust, and a C
+linker; see [prerequisites](#prerequisites).
+
+```powershell
+git clone https://github.com/acneism/gralloch.git
+cd gralloch
+.\scripts\install-codex.ps1
+```
+
+Add `-Yara` to the installer command to enable YARA scanning.
+
+**2. Start a new local Codex chat and send this command:**
+
+```text
+$gralloch:gralloch "C:\samples\app.exe" --profile understand --cases-root "C:\analysis\cases"
+```
+
+Replace the sample path and cases directory with your own. The cases directory
+must be outside the repository. This runs the static pipeline and generates a
+report; running the sample requires a separate analysis VM.
+See [all Codex commands and troubleshooting](#codex).
 
 ## Prerequisites
 
