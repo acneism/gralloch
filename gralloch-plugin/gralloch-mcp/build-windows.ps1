@@ -4,8 +4,28 @@ $ErrorActionPreference = 'Stop'
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 Push-Location $here
 try {
+    # Make the toolchain reachable even if PATH is not set up in this shell. The
+    # GNU target needs the MinGW linker's dlltool.exe to link windows-sys/getrandom.
     if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
-        throw "cargo not found. Install Rust from https://rustup.rs and the MSVC C++ Build Tools, then re-run."
+        $cargoBin = Join-Path $env:USERPROFILE '.cargo\bin'
+        if (Test-Path -LiteralPath (Join-Path $cargoBin 'cargo.exe')) { $env:PATH = "$cargoBin;$env:PATH" }
+    }
+    if (-not (Get-Command gcc -ErrorAction SilentlyContinue)) {
+        $cands = @()
+        if ($env:MINGW_DIR) { $cands += (Join-Path $env:MINGW_DIR 'bin') }
+        $cands += (Join-Path $env:USERPROFILE 'mingw\mingw64\bin')
+        $cands += 'C:\msys64\mingw64\bin'
+        foreach ($d in $cands) {
+            if (Test-Path -LiteralPath (Join-Path $d 'gcc.exe')) {
+                $env:PATH = "$d;$env:PATH"
+                Write-Host "Using MinGW toolchain: $d" -ForegroundColor DarkGray
+                break
+            }
+        }
+    }
+
+    if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
+        throw "cargo not found. Install Rust from https://rustup.rs (GNU: rustup default stable-x86_64-pc-windows-gnu) or put it on PATH, then re-run."
     }
 
     $featArgs = @()

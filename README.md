@@ -30,11 +30,15 @@ repository root.
 
 ### Claude Code
 
-**1. Build the server in PowerShell:**
+**1. Build the server.** Double-click **`build.bat`**, or run it in PowerShell
+(`-Yara` also compiles the YARA engine):
 
 ```powershell
-.\gralloch-plugin\gralloch-mcp\build-windows.ps1 -Yara
+.\build.bat -Yara            # or: .\gralloch-plugin\gralloch-mcp\build-windows.ps1 -Yara
 ```
+
+Both put Rust and the MinGW linker on `PATH` automatically (searching `PATH`,
+then `MINGW_DIR`, then `%USERPROFILE%\mingw\mingw64\bin`, then `C:\msys64`).
 
 **2. Install in Claude Code:**
 
@@ -65,8 +69,9 @@ Single stages use `/case-new`, `/triage`, `/capa`, `/yara`, `/unpack`, `/static`
 .\scripts\install-codex.ps1 -Yara
 ```
 
-This builds the server and installs `gralloch@gralloch-codex` through Codex's
-plugin manager. Codex CLI with `codex plugin add` must be installed.
+This builds the server (finding the toolchain automatically, as above) and
+installs `gralloch@gralloch-codex` through Codex's plugin manager. Codex CLI
+with `codex plugin add` must be installed.
 
 **2. Start a new local Codex chat and run:**
 
@@ -95,8 +100,10 @@ smaller build without that optional stage.
 - A C linker — either of:
   - **MSVC** — Visual Studio Build Tools, "Desktop development with C++"
     (target `x86_64-pc-windows-msvc`); or
-  - **GNU (no admin)** — MinGW-w64 `gcc` on `PATH` (e.g. WinLibs), then
-    `rustup default stable-x86_64-pc-windows-gnu`.
+  - **GNU (no admin)** — MinGW-w64 (e.g. WinLibs) with `rustup default
+    stable-x86_64-pc-windows-gnu`. Put its `bin` on `PATH`, or under
+    `%USERPROFILE%\mingw\mingw64\bin`, or point `MINGW_DIR` at its root — the
+    build script finds any of these.
 
   The default build is pure Rust. The optional `yara` feature compiles yara-x,
   which pulls wasmtime + a small C dependency built by the linker above.
