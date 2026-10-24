@@ -4,10 +4,12 @@
 
 Isolation-first, semi-automatic **reverse-engineering pipeline for Windows PE**,
 available as a plugin for [Claude Code](#claude-code) and [Codex](#codex).
-The coding agent orchestrates established tools
-(Ghidra, capa, Frida, …); a native Rust MCP server does the fast deterministic
-work (triage, safe case creation). The pipeline is a thin wrapper over existing
-tools, not a new analysis engine.
+The coding agent orchestrates established tools (Ghidra, capa, YARA, UPX, Frida,
+…); a native Rust MCP server (10 tools) does the fast deterministic work — safe
+case creation, triage, capa/YARA folding, static deobfuscation, a call graph and
+per-function facts cards over the Ghidra export, VM-trace import, evidence
+verification, and the final report. It is a thin wrapper over existing tools,
+not a new analysis engine.
 
 - **Plugin:** [`gralloch-plugin/`](gralloch-plugin/) — manifest, MCP server, skills, commands, hooks
 - **Marketplace:** `.claude-plugin/marketplace.json` (repo root is an installable marketplace)
@@ -141,7 +143,9 @@ YARA needs no external tool — baseline rules ship in the plugin and run in the
 
 The Rust server compiles (`rustc 1.99.1`, `x86_64-pc-windows-gnu`) and is
 verified end-to-end: `cargo test`, an MCP stdio handshake, and `case_new` →
-`triage` → capa (`run-capa.ps1` + `capa_import`) over a real System32 PE. All
+`triage` → capa (`run-capa.ps1` + `capa_import`) over a real System32 PE; the
+Ghidra-export tools (`call_graph`, `function_card`, capa-sourced behavior
+categories) were verified against real Ghidra 12.2 output. All
 markdown/JSON/scripts are validated too (`claude plugin validate --strict`,
 JSON Schema, hook unit tests, script syntax).
 
